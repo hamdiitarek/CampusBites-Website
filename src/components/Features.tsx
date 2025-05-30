@@ -1,7 +1,10 @@
 
 import { Zap, Shield, Globe, Smartphone, Clock, Heart } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const Features = () => {
+  const { t, isRTL } = useLanguage();
+
   const features = [
     {
       icon: Zap,
@@ -38,14 +41,14 @@ const Features = () => {
   return (
     <section id="features" className="py-20 bg-gradient-to-br from-gray-50 to-blue-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
+        <div className={`text-center mb-16 ${isRTL ? 'text-right' : ''}`}>
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
             <span className="bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-              Why Choose StudyConnect?
+              {t('whyChoose')}
             </span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Discover the features that make our platform the perfect choice for modern education.
+            {t('featuresSubtitle')}
           </p>
         </div>
 
