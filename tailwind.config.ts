@@ -84,11 +84,48 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'slideInFromLeft': {
+					from: {
+						transform: 'translateX(-100%)',
+						opacity: '0'
+					},
+					to: {
+						transform: 'translateX(0)',
+						opacity: '1'
+					}
+				},
+				'slideInFromRight': {
+					from: {
+						transform: 'translateX(100%)',
+						opacity: '0'
+					},
+					to: {
+						transform: 'translateX(0)',
+						opacity: '1'
+					}
+				},
+				'fadeInUp': {
+					from: {
+						transform: 'translateY(30px)',
+						opacity: '0'
+					},
+					to: {
+						transform: 'translateY(0)',
+						opacity: '1'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'slideIn': 'slideInFromLeft 0.6s ease-out',
+				'slideInRight': 'slideInFromRight 0.6s ease-out',
+				'fadeInUp': 'fadeInUp 0.6s ease-out'
+			},
+			fontFamily: {
+				'sans': ['Inter', 'ui-sans-serif', 'system-ui'],
+				'arabic': ['Cairo', 'ui-sans-serif', 'system-ui']
 			}
 		}
 	},

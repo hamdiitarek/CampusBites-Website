@@ -1,5 +1,6 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -99,9 +100,112 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
   }
 
   .font-arabic {
     font-family: 'Cairo', sans-serif;
+  }
+  
+  /* Enhanced RTL Support */
+  [dir="rtl"] {
+    text-align: right;
+  }
+  
+  [dir="rtl"] .text-left {
+    text-align: right;
+  }
+  
+  [dir="rtl"] .text-right {
+    text-align: left;
+  }
+  
+  /* RTL-aware margins and paddings */
+  [dir="rtl"] .ml-auto {
+    margin-left: unset;
+    margin-right: auto;
+  }
+  
+  [dir="rtl"] .mr-auto {
+    margin-right: unset;
+    margin-left: auto;
+  }
+  
+  /* RTL-aware flex directions */
+  [dir="rtl"] .flex-row {
+    flex-direction: row-reverse;
+  }
+  
+  /* RTL-aware transforms for arrows and icons */
+  [dir="rtl"] .rotate-arrow {
+    transform: rotate(180deg);
+  }
+  
+  /* RTL-aware hover effects */
+  [dir="rtl"] .group:hover .group-hover\\:translate-x-1 {
+    transform: translateX(-0.25rem);
+  }
+  
+  [dir="ltr"] .group:hover .group-hover\\:translate-x-1 {
+    transform: translateX(0.25rem);
+  }
+  
+  /* Smooth transitions for language switching */
+  html {
+    transition: direction 0.3s ease;
+  }
+  
+  /* Better Arabic typography */
+  .font-arabic {
+    line-height: 1.8;
+    letter-spacing: 0.025em;
+    font-feature-settings: "liga" on, "kern" on;
+  }
+  
+  /* Enhanced gradient text for Arabic */
+  .font-arabic .bg-clip-text {
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+  
+  /* RTL-aware animations */
+  @keyframes slideInFromRight {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes slideInFromLeft {
+    from {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  
+  /* Context-aware slide animations */
+  [dir="rtl"] .animate-slideIn {
+    animation: slideInFromRight 0.6s ease-out;
+  }
+  
+  [dir="ltr"] .animate-slideIn {
+    animation: slideInFromLeft 0.6s ease-out;
+  }
+  
+  /* RTL-aware underline animations */
+  [dir="rtl"] .group:hover .group-hover\\:w-full {
+    transform-origin: right;
+  }
+  
+  [dir="ltr"] .group:hover .group-hover\\:w-full {
+    transform-origin: left;
   }
 }
