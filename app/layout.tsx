@@ -1,5 +1,5 @@
 import Providers from "./providers";
-import "@/index.css";
+import "./globals.css";
 
 export const metadata = {
   title: "CampusBites",
