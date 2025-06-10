@@ -1,9 +1,448 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Import Google Fonts for better Arabic support */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Base styles with SEO considerations */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-feature-settings: "liga" 1, "kern" 1;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    line-height: 1.6;
+    font-size: 16px;
+  }
+
+  /* Arabic font styling for better readability */
+  [dir="rtl"] body,
+  .font-arabic {
+    font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    letter-spacing: 0.02em;
+  }
+
+  /* Headings optimization for SEO */
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 0.5em;
+  }
+
+  h1 {
+    font-size: clamp(2rem, 5vw, 4rem);
+  }
+
+  h2 {
+    font-size: clamp(1.5rem, 4vw, 3rem);
+  }
+
+  h3 {
+    font-size: clamp(1.25rem, 3vw, 2rem);
+  }
+
+  /* Improved focus states for accessibility */
+  *:focus {
+    outline: 2px solid #ea580c;
+    outline-offset: 2px;
+  }
+
+  /* Better link styling */
+  a {
+    color: #ea580c;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  a:hover {
+    color: #dc2626;
+    text-decoration: underline;
+  }
+}
+
+/* Component styles */
+@layer components {
+  /* Arabic/RTL specific utilities */
+  .rtl-flip {
+    transform: scaleX(-1);
+  }
+
+  [dir="rtl"] .rtl-flip {
+    transform: scaleX(1);
+  }
+
+  /* Gradient text for branding */
+  .gradient-text {
+    background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Button component */
+  .btn-primary {
+    @apply bg-gradient-to-r from-orange-500 to-red-600 text-white px-6 py-3 rounded-full font-semibold hover:from-orange-600 hover:to-red-700 transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl;
+  }
+
+  .btn-secondary {
+    @apply border-2 border-orange-500 text-orange-500 px-6 py-3 rounded-full font-semibold hover:bg-orange-500 hover:text-white transition-all duration-200;
+  }
+
+  /* Card components */
+  .card {
+    @apply bg-white rounded-2xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300;
+  }
+
+  /* Section spacing */
+  .section {
+    @apply py-20;
+  }
+
+  .section-header {
+    @apply text-center mb-16;
+  }
+
+  /* Container with proper RTL support */
+  .container-responsive {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* RTL-aware section layouts that prevent hydration mismatch */
+  .section-layout-alternate {
+    @apply flex flex-col lg:flex-row items-center gap-12;
+  }
+  
+  /* Content ordering for alternating sections */
+  .section-content-1 {
+    @apply flex-1 lg:order-1;
+  }
+  
+  .section-image-1 {
+    @apply flex-1 lg:order-2;
+  }
+  
+  .section-content-2 {
+    @apply flex-1 lg:order-2;
+  }
+  
+  .section-image-2 {
+    @apply flex-1 lg:order-1;
+  }
+  
+  /* RTL overrides that work consistently */
+  [dir="rtl"] .section-content-1 {
+    @apply lg:order-2;
+  }
+  
+  [dir="rtl"] .section-image-1 {
+    @apply lg:order-1;
+  }
+  
+  [dir="rtl"] .section-content-2 {
+    @apply lg:order-1;
+  }
+  
+  [dir="rtl"] .section-image-2 {
+    @apply lg:order-2;
+  }
+}
+
+/* Utility classes */
+@layer utilities {
+  /* Animation delays */
+  .animation-delay-1000 {
+    animation-delay: 1s;
+  }
+
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+
+  .animation-delay-4000 {
+    animation-delay: 4s;
+  }
+
+  /* Text size utilities for Arabic */
+  .text-arabic-sm {
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .text-arabic-base {
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  .text-arabic-lg {
+    font-size: 1.125rem;
+    line-height: 1.7;
+  }
+
+  /* Spacing for RTL */
+  .space-x-reverse-4 > :not([hidden]) ~ :not([hidden]) {
+    --tw-space-x-reverse: 1;
+    margin-right: calc(1rem * var(--tw-space-x-reverse));
+    margin-left: calc(1rem * calc(1 - var(--tw-space-x-reverse)));
+  }
+
+  /* Performance optimizations */
+  .will-change-transform {
+    will-change: transform;
+  }
+
+  /* Loading states */
+  .loading-skeleton {
+    @apply animate-pulse bg-gray-200 rounded;
+  }
+
+  /* Responsive grid for RTL */
+  .grid-responsive {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8;
+  }
+
+  [dir="rtl"] .grid-responsive {
+    direction: rtl;
+  }
+
+  /* Additional RTL text spacing variants */
+  .rtl-text-spacing-tight {
+    letter-spacing: 0.02em;
+    word-spacing: 0.05em;
+    line-height: 1.6;
+  }
+  
+  .rtl-text-spacing-wide {
+    letter-spacing: 0.04em;
+    word-spacing: 0.15em;
+    line-height: 2.0;
+  }
+
+  /* RTL direction utilities */
+  .dir-rtl {
+    direction: rtl;
+  }
+  
+  .dir-ltr {
+    direction: ltr;
+  }
+}
+
+/* Enhanced RTL Typography and Indentation */
+@layer utilities {
+  /* Better Arabic text spacing and indentation */
+  .rtl-text-spacing {
+    letter-spacing: 0.03em;
+    word-spacing: 0.1em;
+    line-height: 1.8;
+  }
+  
+  /* RTL-aware indentation utilities */
+  .indent-rtl-4 {
+    text-indent: 1rem;
+  }
+  
+  [dir="rtl"] .indent-rtl-4 {
+    text-indent: -1rem;
+    padding-right: 1rem;
+  }
+  
+  .indent-rtl-8 {
+    text-indent: 2rem;
+  }
+  
+  [dir="rtl"] .indent-rtl-8 {
+    text-indent: -2rem;
+    padding-right: 2rem;
+  }
+  
+  /* RTL-aware list styling */
+  .list-rtl {
+    list-style-position: inside;
+  }
+  
+  [dir="rtl"] .list-rtl {
+    list-style-position: outside;
+    padding-right: 1.5rem;
+    padding-left: 0;
+  }
+  
+  /* Improved RTL paragraph spacing */
+  .paragraph-rtl {
+    margin-bottom: 1rem;
+    text-align: start;
+  }
+  
+  [dir="rtl"] .paragraph-rtl {
+    text-align: right;
+  }
+  
+  /* RTL-aware quote styling */
+  .quote-rtl {
+    border-left: 4px solid theme('colors.orange.500');
+    padding-left: 1rem;
+  }
+  
+  [dir="rtl"] .quote-rtl {
+    border-left: none;
+    border-right: 4px solid theme('colors.orange.500');
+    padding-left: 0;
+    padding-right: 1rem;
+  }
+  
+  /* Better RTL button alignment */
+  .btn-group-rtl {
+    @apply flex gap-4;
+  }
+  
+  [dir="rtl"] .btn-group-rtl {
+    @apply flex-row-reverse;
+  }
+  
+  /* RTL-aware card layouts */
+  .card-rtl {
+    @apply text-left;
+  }
+  
+  [dir="rtl"] .card-rtl {
+    @apply text-right;
+  }
+  
+  /* Enhanced Arabic numerals */
+  .arabic-numerals {
+    font-variant-numeric: tabular-nums;
+  }
+  
+  [dir="rtl"] .arabic-numerals {
+    direction: ltr;
+    unicode-bidi: embed;
+  }
+  
+  /* RTL-aware icon positioning */
+  .icon-before {
+    @apply mr-2;
+  }
+  
+  [dir="rtl"] .icon-before {
+    @apply mr-0 ml-2;
+  }
+  
+  .icon-after {
+    @apply ml-2;
+  }
+  
+  [dir="rtl"] .icon-after {
+    @apply ml-0 mr-2;
+  }
+
+  /* Enhanced RTL icon positioning - icons on the right for Arabic */
+  .icon-text-rtl {
+    @apply flex items-center;
+  }
+  
+  [dir="rtl"] .icon-text-rtl {
+    @apply flex-row-reverse;
+  }
+  
+  /* Feature cards with RTL icon positioning */
+  .feature-card-rtl {
+    @apply flex flex-col;
+  }
+  
+  [dir="rtl"] .feature-card-rtl .feature-icon {
+    @apply self-end mb-6;
+  }
+  
+  /* Button icons for RTL */
+  .btn-icon-rtl {
+    @apply inline-flex items-center;
+  }
+  
+  [dir="rtl"] .btn-icon-rtl {
+    @apply flex-row-reverse;
+  }
+  
+  /* List items with icons for RTL */
+  .list-icon-rtl {
+    @apply flex items-start gap-4;
+  }
+  
+  [dir="rtl"] .list-icon-rtl {
+    @apply flex-row-reverse text-right;
+  }
+}
+
+/* Custom animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+[dir="rtl"] @keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.animate-slideIn {
+  animation: slideIn 0.4s ease-out forwards;
+}
+
+/* Performance optimizations */
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Print styles for better SEO */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    font-size: 12pt;
+    line-height: 1.4;
+  }
+  
+  h1, h2, h3 {
+    page-break-after: avoid;
+  }
+}
 
 @layer base {
   :root {
@@ -207,5 +646,30 @@
   
   [dir="ltr"] .group:hover .group-hover\\:w-full {
     transform-origin: left;
+  }
+}
+
+/* Additional RTL Utilities */
+@layer utilities {
+  /* Additional RTL text spacing variants */
+  .rtl-text-spacing-tight {
+    letter-spacing: 0.02em;
+    word-spacing: 0.05em;
+    line-height: 1.6;
+  }
+  
+  .rtl-text-spacing-wide {
+    letter-spacing: 0.04em;
+    word-spacing: 0.15em;
+    line-height: 2.0;
+  }
+
+  /* RTL direction utilities */
+  .dir-rtl {
+    direction: rtl;
+  }
+  
+  .dir-ltr {
+    direction: ltr;
   }
 }

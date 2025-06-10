@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 
 interface Translations {
   [key: string]: {
@@ -20,15 +21,30 @@ const translations: Translations = {
   getStarted: { en: "Get Started", ar: "ابدأ الآن" },
   
   // Hero
-  trustedBy: { en: "Trusted by 10,000+ students", ar: "موثوق من قِبل أكثر من 10,000 طالب" },
-  heroTitle: { en: "CampusBites", ar: "كامبوس بايتس" },
-  heroSubtitle: { en: "Campus Food Delivery", ar: "توصيل الطعام الجامعي" },
-  heroDescription: { 
-    en: "Mobile food delivery application tailored for university campuses. Browse menus, place orders, and enjoy delicious meals delivered right to your dorm or study spot.",
-    ar: "تطبيق توصيل الطعام المحمول المصمم خصيصاً للحرم الجامعي. تصفح القوائم واطلب وجباتك المفضلة ليتم توصيلها مباشرة إلى سكنك أو مكان دراستك."
+  trustedBy: { 
+    en: "Trusted by 50,000+ Egyptian Students 🇪🇬", 
+    ar: "يثق به أكثر من 50,000 طالب مصري 🇪🇬" 
   },
-  downloadApp: { en: "Download App", ar: "تحميل التطبيق" },
-  browseMenus: { en: "Browse Menus", ar: "تصفح القوائم" },
+  heroTitle: { 
+    en: "CampusBites", 
+    ar: "كامبوس بايتس" 
+  },
+  heroSubtitle: { 
+    en: "Egypt's #1 Campus Food Delivery 🚀", 
+    ar: "تطبيق توصيل الطعام الجامعي الأول في مصر 🚀" 
+  },
+  heroDescription: { 
+    en: "Order delicious meals from your university cafeterias, canteens, and restaurants. Lightning-fast delivery to Egyptian university campuses in Cairo, Alexandria & beyond. Student discounts, fresh food, unbeatable convenience!",
+    ar: "اطلب أكلك المفضل من كانتين وكافيتيريا ومطاعم جامعتك 🍕 توصيل سريع للجامعات المصرية في القاهرة والإسكندرية وكل مكان. خصومات للطلاب، أكل طازج، وسهولة ما لهاش حل!"
+  },
+  downloadApp: { 
+    en: "Download App Free", 
+    ar: "حمل التطبيق مجاناً" 
+  },
+  browseMenus: { 
+    en: "Browse Campus Menus", 
+    ar: "تصفح قوائم الجامعة" 
+  },
   
   // App mockup content
   dashboard: { en: "Dashboard", ar: "لوحة التحكم" },
@@ -156,33 +172,70 @@ interface LanguageContextType {
   setLanguage: (lang: 'en' | 'ar') => void;
   t: (key: string) => string;
   isRTL: boolean;
+  navigateToLanguage: (lang: 'en' | 'ar') => void;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Start with default value to avoid hydration mismatch
-  const [language, setLanguage] = useState<'en' | 'ar'>('en');
+  const pathname = usePathname();
+  const router = useRouter();
+  
+  // Detect language from URL
+  const getLanguageFromPath = (path: string): 'en' | 'ar' => {
+    if (path.startsWith('/ar')) return 'ar';
+    if (path.startsWith('/en')) return 'en';
+    
+    // Default fallback - check saved preference or default to 'en'
+    if (typeof window !== 'undefined') {
+      // Check localStorage first
+      const savedLanguage = localStorage.getItem('campusbites-language') as 'en' | 'ar';
+      if (savedLanguage) return savedLanguage;
+      
+      // Check cookies as fallback
+      const cookieLanguage = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('campusbites-language='))
+        ?.split('=')[1] as 'en' | 'ar';
+      if (cookieLanguage) return cookieLanguage;
+    }
+    
+    return 'en';
+  };
+
+  const [language, setLanguage] = useState<'en' | 'ar'>(() => getLanguageFromPath(pathname));
   const [mounted, setMounted] = useState(false);
 
-  // Load saved language preference after component mounts
+  // Update language when URL changes
   useEffect(() => {
-    const savedLanguage = localStorage.getItem('campusbites-language') as 'en' | 'ar';
-    if (savedLanguage) {
-      setLanguage(savedLanguage);
-    }
+    const newLanguage = getLanguageFromPath(pathname);
+    setLanguage(newLanguage);
     setMounted(true);
-  }, []);
+  }, [pathname]);
 
-  // Save language preference to localStorage and update document attributes
+  // Save language preference to localStorage and cookies
   useEffect(() => {
     if (mounted) {
+      // Save to localStorage for client-side persistence
       localStorage.setItem('campusbites-language', language);
-      // Update document direction and language attributes
-      document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
-      document.documentElement.lang = language;
+      
+      // Save to cookies for server-side access (middleware)
+      document.cookie = `campusbites-language=${language}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;
     }
   }, [language, mounted]);
+
+  const navigateToLanguage = (lang: 'en' | 'ar') => {
+    // Navigate to the appropriate language route
+    if (lang === 'en') {
+      router.push('/en');
+    } else if (lang === 'ar') {
+      router.push('/ar');
+    }
+  };
+
+  const handleSetLanguage = (lang: 'en' | 'ar') => {
+    navigateToLanguage(lang);
+  };
 
   const t = (key: string): string => {
     return translations[key]?.[language] || key;
@@ -193,22 +246,27 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Don't render children until after hydration to prevent mismatch
   if (!mounted) {
     return (
-      <LanguageContext.Provider value={{ language: 'en', setLanguage, t, isRTL: false }}>
-        <div dir="ltr" className="text-left transition-all duration-300">
-          {children}
-        </div>
+      <LanguageContext.Provider value={{ 
+        language: 'en', 
+        setLanguage: handleSetLanguage, 
+        t, 
+        isRTL: false,
+        navigateToLanguage 
+      }}>
+        {children}
       </LanguageContext.Provider>
     );
   }
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t, isRTL }}>
-      <div 
-        dir={isRTL ? 'rtl' : 'ltr'} 
-        className={`${isRTL ? 'font-arabic text-right' : 'text-left'} transition-all duration-300`}
-      >
-        {children}
-      </div>
+    <LanguageContext.Provider value={{ 
+      language, 
+      setLanguage: handleSetLanguage, 
+      t, 
+      isRTL,
+      navigateToLanguage 
+    }}>
+      {children}
     </LanguageContext.Provider>
   );
 };

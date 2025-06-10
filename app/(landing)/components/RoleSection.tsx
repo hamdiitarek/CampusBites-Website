@@ -53,12 +53,12 @@ const RoleSection = () => {
     <section id="roles" className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
+          <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${isRTL ? 'font-arabic rtl-text-spacing' : ''}`}>
             <span className="bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
               {t('builtForEveryone')}
             </span>
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className={`text-xl text-gray-600 max-w-3xl mx-auto paragraph-rtl ${isRTL ? 'rtl-text-spacing' : ''}`}>
             {t('builtForEveryoneDesc')}
           </p>
         </div>
@@ -72,16 +72,16 @@ const RoleSection = () => {
             return (
               <div key={role.title} className={`flex flex-col lg:flex-row items-center gap-12`}>
                 {/* Content */}
-                <div className={`flex-1 space-y-8 ${contentOrder} ${isRTL ? 'text-right' : 'text-left'}`}>
+                <div className={`flex-1 space-y-8 ${contentOrder} card-rtl`}>
                   <div>
                     <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-r ${role.gradient} mb-6`}>
                       <role.icon className="w-8 h-8 text-white" />
                     </div>
-                    <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">{role.title}</h3>
-                    <p className={`text-lg font-semibold bg-gradient-to-r ${role.gradient} bg-clip-text text-transparent mb-4`}>
+                    <h3 className={`text-3xl md:text-4xl font-bold text-gray-900 mb-3 ${isRTL ? 'font-arabic rtl-text-spacing' : ''}`}>{role.title}</h3>
+                    <p className={`text-lg font-semibold bg-gradient-to-r ${role.gradient} bg-clip-text text-transparent mb-4 ${isRTL ? 'rtl-text-spacing' : ''}`}>
                       {role.subtitle}
                     </p>
-                    <p className="text-gray-600 text-lg leading-relaxed">
+                    <p className={`text-gray-600 text-lg leading-relaxed paragraph-rtl ${isRTL ? 'rtl-text-spacing' : ''}`}>
                       {role.description}
                     </p>
                   </div>
@@ -92,9 +92,9 @@ const RoleSection = () => {
                         <div className={`flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-r ${role.gradient} flex items-center justify-center`}>
                           <feature.icon className="w-6 h-6 text-white" />
                         </div>
-                        <div>
-                          <h4 className="font-semibold text-gray-900 mb-1">{feature.title}</h4>
-                          <p className="text-gray-600">{feature.description}</p>
+                        <div className="card-rtl">
+                          <h4 className={`font-semibold text-gray-900 mb-1 ${isRTL ? 'font-arabic' : ''}`}>{feature.title}</h4>
+                          <p className={`text-gray-600 paragraph-rtl ${isRTL ? 'rtl-text-spacing' : ''}`}>{feature.description}</p>
                         </div>
                       </div>
                     ))}

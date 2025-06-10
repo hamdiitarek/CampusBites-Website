@@ -1,8 +1,36 @@
+User-agent: *
+Allow: /
+
+# Priority crawling for main pages
+Allow: /
+Allow: /en
+Allow: /ar
+Allow: /about
+Allow: /contact
+Allow: /terms
+Allow: /privacy
+
+# Block unnecessary pages
+Disallow: /api/
+Disallow: /_next/
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /temp/
+
+# Sitemap location
+Sitemap: https://campusbites.com/sitemap.xml
+
+# Crawl-delay for bots (be nice to our servers!)
+Crawl-delay: 1
+
+# Specific instructions for search engines
 User-agent: Googlebot
 Allow: /
+Crawl-delay: 0
 
 User-agent: Bingbot
 Allow: /
+Crawl-delay: 1
 
 User-agent: Twitterbot
 Allow: /
@@ -10,5 +38,9 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
-User-agent: *
-Allow: /
+# Block aggressive crawlers
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /

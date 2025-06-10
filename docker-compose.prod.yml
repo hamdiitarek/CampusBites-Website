@@ -1,0 +1,93 @@
+services:
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik-prod
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --api.dashboard=true
+      - --api.insecure=false
+      - --certificatesresolvers.letsencrypt.acme.tlschallenge=true
+      - --certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}
+      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
+      - --log.level=INFO
+      - --accesslog=true
+      # Security headers
+      - --entrypoints.websecure.http.middlewares=security-headers@docker
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./letsencrypt:/letsencrypt
+    networks:
+      - traefik-network
+    labels:
+      - "traefik.enable=true"
+      # Dashboard
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.${DOMAIN}`)"
+      - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.dashboard.middlewares=auth"
+      - "traefik.http.services.dashboard.loadbalancer.server.port=8080"
+      # Basic auth for dashboard (generate with: echo $(htpasswd -nb admin password) | sed -e s/\\$/\\$\\$/g)
+      - "traefik.http.middlewares.auth.basicauth.users=${TRAEFIK_AUTH}"
+      # Security headers middleware
+      - "traefik.http.middlewares.security-headers.headers.accesscontrolallowmethods=GET,OPTIONS,PUT"
+      - "traefik.http.middlewares.security-headers.headers.accesscontrolalloworiginlist=https://${DOMAIN}"
+      - "traefik.http.middlewares.security-headers.headers.accesscontrolmaxage=100"
+      - "traefik.http.middlewares.security-headers.headers.addvaryheader=true"
+      - "traefik.http.middlewares.security-headers.headers.referrerpolicy=same-origin"
+      - "traefik.http.middlewares.security-headers.headers.contenttypenosniff=true"
+      - "traefik.http.middlewares.security-headers.headers.frameDeny=true"
+      - "traefik.http.middlewares.security-headers.headers.sslredirect=true"
+      - "traefik.http.middlewares.security-headers.headers.stsincludesubdomains=true"
+      - "traefik.http.middlewares.security-headers.headers.stspreload=true"
+      - "traefik.http.middlewares.security-headers.headers.stsseconds=315360000"
+    restart: unless-stopped
+    environment:
+      - DOMAIN=${DOMAIN}
+      - ACME_EMAIL=${ACME_EMAIL}
+
+  campusbites:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      args:
+        LOCKFILE_MODE: frozen
+    container_name: campusbites-prod
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - NEXT_TELEMETRY_DISABLED=1
+    networks:
+      - traefik-network
+    labels:
+      - "traefik.enable=true"
+      # Main domain
+      - "traefik.http.routers.campusbites.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.campusbites.entrypoints=websecure"
+      - "traefik.http.routers.campusbites.tls.certresolver=letsencrypt"
+      - "traefik.http.services.campusbites.loadbalancer.server.port=3000"
+      # WWW redirect
+      - "traefik.http.routers.campusbites-www.rule=Host(`www.${DOMAIN}`)"
+      - "traefik.http.routers.campusbites-www.entrypoints=websecure"
+      - "traefik.http.routers.campusbites-www.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.campusbites-www.middlewares=www-redirect"
+      - "traefik.http.middlewares.www-redirect.redirectregex.regex=^https://www\\.(.+)"
+      - "traefik.http.middlewares.www-redirect.redirectregex.replacement=https://$${1}"
+      - "traefik.http.middlewares.www-redirect.redirectregex.permanent=true"
+      # HTTP to HTTPS redirect
+      - "traefik.http.routers.campusbites-http.rule=Host(`${DOMAIN}`) || Host(`www.${DOMAIN}`)"
+      - "traefik.http.routers.campusbites-http.entrypoints=web"
+      - "traefik.http.routers.campusbites-http.middlewares=https-redirect"
+      - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.https-redirect.redirectscheme.permanent=true"
+    restart: unless-stopped
+    depends_on:
+      - traefik
+
+networks:
+  traefik-network:
+    external: false

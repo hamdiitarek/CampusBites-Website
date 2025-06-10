@@ -1,0 +1,53 @@
+{
+  "name": "CampusBites - كامبوس بايتس",
+  "short_name": "CampusBites",
+  "description": "Egypt's #1 campus food delivery app. اطلب أكلك من الجامعة في دقايق",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ea580c",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/android-chrome-512x512.png", 
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["food", "lifestyle", "productivity", "social"],
+  "screenshots": [
+    {
+      "src": "/screenshot-wide.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/screenshot-narrow.png", 
+      "sizes": "640x1136",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "play",
+      "url": "https://play.google.com/store/apps/details?id=com.campusbites.app",
+      "id": "com.campusbites.app"
+    },
+    {
+      "platform": "itunes",
+      "url": "https://apps.apple.com/eg/app/campusbites/id123456789"
+    }
+  ],
+  "prefer_related_applications": true
+}

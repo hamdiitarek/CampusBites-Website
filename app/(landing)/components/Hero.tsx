@@ -17,46 +17,64 @@ const Hero = () => {
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
-        <div className={`grid grid-cols-1 lg:grid-cols-2 gap-12 items-center`}>
-          <div className={`${isRTL ? 'lg:order-2 text-right' : 'lg:order-1 text-left'}`}>
+        <div className={`grid grid-cols-1 lg:grid-cols-2 gap-12 items-center ${isRTL ? 'lg:grid-flow-col-dense' : ''}`}>
+          {/* Text Content */}
+          <div className={`${isRTL ? 'lg:col-start-2 text-right' : 'lg:col-start-1 text-left'}`}>
             {/* Badge */}
             <div className={`inline-flex items-center px-4 py-2 rounded-full bg-white/60 backdrop-blur-sm border border-orange-200 mb-8 ${isRTL ? 'flex-row-reverse' : ''}`}>
-              <Star className={`w-4 h-4 text-yellow-500 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+              <Star className={`w-4 h-4 text-yellow-500 icon-before`} />
               <span className="text-sm font-medium text-gray-700">{t('trustedBy')}</span>
             </div>
 
-            {/* Main headline */}
-            <h1 className="text-5xl md:text-7xl font-bold mb-4">
+            {/* Main headline with SEO-optimized structure */}
+            <h1 className={`text-5xl md:text-7xl font-bold mb-4 ${isRTL ? 'font-arabic rtl-text-spacing' : ''}`}>
               <span className="bg-gradient-to-r from-orange-600 via-red-600 to-orange-800 bg-clip-text text-transparent">
                 {t('heroTitle')}
               </span>
             </h1>
             
-            {/* Subtitle */}
-            <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-6">
+            {/* Subtitle with location-based keywords */}
+            <h2 className={`text-2xl md:text-3xl font-semibold text-gray-700 mb-6 ${isRTL ? 'rtl-text-spacing' : ''}`}>
               {t('heroSubtitle')}
             </h2>
 
-            {/* Description */}
-            <p className="text-xl md:text-2xl text-gray-600 mb-12 max-w-4xl leading-relaxed">
+            {/* Rich description with embedded keywords */}
+            <p className={`text-xl md:text-2xl text-gray-600 mb-8 max-w-4xl leading-relaxed paragraph-rtl ${isRTL ? 'rtl-text-spacing' : ''}`}>
               {t('heroDescription')}
             </p>
 
+            {/* Local SEO keywords for Egyptian universities */}
+            <div className={`hidden md:flex flex-wrap gap-2 mb-8 ${isRTL ? 'justify-end flex-row-reverse' : 'justify-start'}`}>
+              {[
+                isRTL ? "جامعة القاهرة" : "Cairo University",
+                isRTL ? "جامعة الإسكندرية" : "Alexandria University", 
+                isRTL ? "جامعة عين شمس" : "Ain Shams University",
+                isRTL ? "جامعة حلوان" : "Helwan University"
+              ].map((university, index) => (
+                <span 
+                  key={index}
+                  className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-medium"
+                >
+                  {university}
+                </span>
+              ))}
+            </div>
+
             {/* CTA buttons */}
-            <div className={`flex flex-col sm:flex-row gap-4 sm:gap-6 mb-16 ${isRTL ? 'items-end sm:items-center' : 'items-start sm:items-center'}`}>
+            <div className={`btn-group-rtl flex-col sm:flex-row sm:gap-6 mb-16 ${isRTL ? 'items-end sm:items-center' : 'items-start sm:items-center'}`}>
               <button className="group bg-gradient-to-r from-orange-500 to-red-600 text-white px-8 py-4 rounded-full text-lg font-semibold hover:from-orange-600 hover:to-red-700 transition-all duration-200 transform hover:scale-105 shadow-xl hover:shadow-2xl">
-                <Download className={`w-5 h-5 inline-block ${isRTL ? 'ml-2' : 'mr-2'}`} />
+                <Download className={`w-5 h-5 inline-block icon-before`} />
                 {t('downloadApp')}
               </button>
               <button className="group flex items-center px-8 py-4 rounded-full text-lg font-semibold text-gray-700 bg-white/60 backdrop-blur-sm border border-gray-200 hover:bg-white/80 transition-all duration-200 transform hover:scale-105">
-                <ShoppingBag className={`w-5 h-5 group-hover:text-orange-600 transition-colors ${isRTL ? 'ml-2' : 'mr-2'}`} />
+                <ShoppingBag className={`w-5 h-5 group-hover:text-orange-600 transition-colors icon-before`} />
                 {t('browseMenus')}
               </button>
             </div>
           </div>
 
           {/* iPhone 16 Pro Mockup */}
-          <div className={`flex justify-center ${isRTL ? 'lg:order-1 lg:justify-start' : 'lg:order-2 lg:justify-end'}`}>
+          <div className={`flex justify-center ${isRTL ? 'lg:col-start-1 lg:justify-end' : 'lg:col-start-2 lg:justify-start'}`}>
             <IPhone16ProMockup 
               screenshots={[
                 "/image/screen1.png"

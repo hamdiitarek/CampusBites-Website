@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" 
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  
+  <!-- Main homepage with language alternatives -->
+  <url>
+    <loc>https://campusbites.com/</loc>
+    <lastmod>2025-01-10</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://campusbites.com/en" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://campusbites.com/ar" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://campusbites.com/" />
+    <image:image>
+      <image:loc>https://campusbites.com/og-image.jpg</image:loc>
+      <image:caption>CampusBites - Egypt Campus Food Delivery App</image:caption>
+      <image:title>CampusBites تطبيق توصيل الطعام الجامعي</image:title>
+    </image:image>
+  </url>
+
+  <!-- English version -->
+  <url>
+    <loc>https://campusbites.com/en</loc>
+    <lastmod>2025-01-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://campusbites.com/ar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://campusbites.com/en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://campusbites.com/" />
+  </url>
+
+  <!-- Arabic version -->
+  <url>
+    <loc>https://campusbites.com/ar</loc>
+    <lastmod>2025-01-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://campusbites.com/en" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://campusbites.com/ar" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://campusbites.com/" />
+  </url>
+
+  <!-- Features and important pages -->
+  <url>
+    <loc>https://campusbites.com/features</loc>
+    <lastmod>2025-01-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://campusbites.com/campus-food-guide-egypt</loc>
+    <lastmod>2025-06-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://campusbites.com/student-discounts-egypt</loc>
+    <lastmod>2025-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://campusbites.com/for-students</loc>
+    <lastmod>2025-01-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://campusbites.com/for-vendors</loc>
+    <lastmod>2025-01-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Legal and contact pages -->
+  <url>
+    <loc>https://campusbites.com/about</loc>
+    <lastmod>2025-01-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <url>
+    <loc>https://campusbites.com/contact</loc>
+    <lastmod>2025-01-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <url>
+    <loc>https://campusbites.com/privacy</loc>
+    <lastmod>2025-01-10</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+  <url>
+    <loc>https://campusbites.com/terms</loc>
+    <lastmod>2025-01-10</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+</urlset>

@@ -1,0 +1,70 @@
+services:
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik
+    command:
+      # Enable Docker provider
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      # Configure entrypoints
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      # Enable API and dashboard
+      - --api.dashboard=true
+      - --api.insecure=true
+      # Configure Let's Encrypt (uncomment for production)
+      # - --certificatesresolvers.letsencrypt.acme.tlschallenge=true
+      # - --certificatesresolvers.letsencrypt.acme.email=your-email@example.com
+      # - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
+      # Enable logging
+      - --log.level=INFO
+      - --accesslog=true
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"  # Traefik dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # For Let's Encrypt certificates (uncomment for production)
+      # - ./letsencrypt:/letsencrypt
+    networks:
+      - traefik-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.localhost`)"
+      - "traefik.http.routers.dashboard.tls=false"
+      - "traefik.http.services.dashboard.loadbalancer.server.port=8080"
+    restart: unless-stopped
+
+  campusbites:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      args:
+        LOCKFILE_MODE: development
+    container_name: campusbites-app
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    networks:
+      - traefik-network
+    labels:
+      - "traefik.enable=true"
+      # HTTP router
+      - "traefik.http.routers.campusbites.rule=Host(`campusbites.localhost`)"
+      - "traefik.http.routers.campusbites.entrypoints=web"
+      - "traefik.http.services.campusbites.loadbalancer.server.port=3000"
+      # HTTPS router (uncomment for production with SSL)
+      # - "traefik.http.routers.campusbites-secure.rule=Host(`campusbites.yourdomain.com`)"
+      # - "traefik.http.routers.campusbites-secure.entrypoints=websecure"
+      # - "traefik.http.routers.campusbites-secure.tls.certresolver=letsencrypt"
+      # Redirect HTTP to HTTPS (uncomment for production)
+      # - "traefik.http.routers.campusbites.middlewares=redirect-to-https"
+      # - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+    restart: unless-stopped
+    depends_on:
+      - traefik
+
+networks:
+  traefik-network:
+    external: false
