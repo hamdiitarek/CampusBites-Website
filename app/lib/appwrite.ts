@@ -1,18 +1,31 @@
-import { Client, Account, ID } from 'appwrite';
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+import { getAnalytics } from "firebase/analytics";
 
-const client = new Client();
-
-client
-  .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://cloud.appwrite.io/v1')
-  .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || '');
-
-export const account = new Account(client);
-
-export const appwriteConfig = {
-  endpoint: process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://cloud.appwrite.io/v1',
-  projectId: process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || '',
-  databaseId: process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID || '',
-  userCollectionId: process.env.NEXT_PUBLIC_APPWRITE_USER_COLLECTION_ID || '',
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyBxtC8pV9alKYNITJ4j13Iy3ZI-_j8XS_M",
+  authDomain: "campusbites-eg.firebaseapp.com",
+  projectId: "campusbites-eg",
+  storageBucket: "campusbites-eg.firebasestorage.app",
+  messagingSenderId: "970089094387",
+  appId: "1:970089094387:web:9a7a6dea9f163ae5a12b86",
+  measurementId: "G-YHYJ77SP8M"
 };
 
-export { client, ID };
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+
+// Initialize Firebase Authentication and get a reference to the service
+export const auth = getAuth(app);
+
+// Initialize Cloud Firestore and get a reference to the service
+export const db = getFirestore(app);
+
+// Initialize Analytics (only in browser environment)
+export const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
+
+export default app;

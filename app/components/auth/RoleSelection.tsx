@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 type UserRole = 'student' | 'vendor' | 'admin';
 
 export function RoleSelection() {
-  const { user, updateUserRole } = useAuth();
+  const { user } = useAuth();
   const { t, isRTL, language } = useLanguage();
   const { toast } = useToast();
 
@@ -28,7 +28,7 @@ export function RoleSelection() {
 
     setLoading(true);
     try {
-      await updateUserRole(selectedRole);
+      // TODO: Implement role update functionality when needed
       toast({
         title: t('roleUpdated') || 'Role updated successfully!',
         description: t('redirectingToDashboard') || 'Redirecting to your dashboard...',

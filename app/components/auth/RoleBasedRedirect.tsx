@@ -19,9 +19,12 @@ export function RoleBasedRedirect() {
         window.location.href = '/vendor-dashboard';
       } else if (role === 'admin') {
         window.location.href = '/admin-dashboard';
+      } else if (role === 'super-admin') {
+        window.location.href = '/super-admin-dashboard';
       } else {
-        // If no role is set, redirect to role selection
-        window.location.href = '/select-role';
+        // If no role is set, redirect to login for re-authentication
+        // This shouldn't happen with new registration flow
+        window.location.href = '/login';
       }
     } else if (!loading && !user) {
       // If not authenticated, redirect to login

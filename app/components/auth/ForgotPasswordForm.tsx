@@ -59,15 +59,15 @@ export function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordFormProps) {
 
   if (success) {
     return (
-      <Card className="w-full max-w-md mx-auto">
+      <Card className={`w-full max-w-md mx-auto ${isRTL ? 'font-arabic' : 'font-inter'}`}>
         <CardHeader className="space-y-1">
-          <div className={`flex items-center justify-center mb-4`}>
+          <div className="flex items-center justify-center mb-4">
             <CheckCircle className="w-16 h-16 text-green-500" />
           </div>
-          <CardTitle className={`text-2xl font-bold text-center ${isRTL ? 'text-right' : 'text-left'}`}>
+          <CardTitle className="text-2xl font-bold text-center">
             {t('resetEmailSent')}
           </CardTitle>
-          <CardDescription className={`text-center ${isRTL ? 'text-right' : 'text-left'}`}>
+          <CardDescription className="text-center">
             {t('resetEmailSent')}
           </CardDescription>
         </CardHeader>
@@ -75,9 +75,9 @@ export function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordFormProps) {
           <Button
             onClick={onBackToLogin}
             variant="outline"
-            className="w-full"
+            className="w-full btn-icon-rtl"
           >
-            <ArrowLeft className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+            <ArrowLeft className="h-4 w-4 icon-before" />
             {t('backToLogin')}
           </Button>
         </CardContent>
@@ -86,12 +86,12 @@ export function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordFormProps) {
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className={`w-full max-w-md mx-auto ${isRTL ? 'font-arabic' : 'font-inter'}`}>
       <CardHeader className="space-y-1">
-        <CardTitle className={`text-2xl font-bold ${isRTL ? 'text-right' : 'text-left'}`}>
+        <CardTitle className="text-2xl font-bold text-start">
           {t('forgotPasswordTitle')}
         </CardTitle>
-        <CardDescription className={isRTL ? 'text-right' : 'text-left'}>
+        <CardDescription className="text-start">
           {t('forgotPasswordSubtitle')}
         </CardDescription>
       </CardHeader>
@@ -99,14 +99,14 @@ export function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordFormProps) {
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <Alert variant="destructive">
-              <AlertDescription className={isRTL ? 'text-right' : 'text-left'}>
+              <AlertDescription className="text-start">
                 {error}
               </AlertDescription>
             </Alert>
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="email" className={isRTL ? 'text-right block' : ''}>
+            <Label htmlFor="email" className="block text-start">
               {t('email')}
             </Label>
             <div className="relative">
@@ -117,15 +117,17 @@ export function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordFormProps) {
                 placeholder={t('emailPlaceholder')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className={isRTL ? 'pr-10 text-right' : 'pl-10'}
+                className={`text-start ${isRTL ? 'pr-10 pl-3' : 'pl-10 pr-3'}`}
+                dir="ltr"
+                style={isRTL ? { textAlign: 'right' } : {}}
                 required
                 autoFocus
               />
             </div>
           </div>
 
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          <Button type="submit" className="w-full btn-icon-rtl" disabled={loading}>
+            {loading && <Loader2 className="h-4 w-4 animate-spin icon-before" />}
             {t('sendResetEmail')}
           </Button>
 
@@ -133,9 +135,9 @@ export function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordFormProps) {
             type="button"
             onClick={onBackToLogin}
             variant="outline"
-            className="w-full"
+            className="w-full btn-icon-rtl"
           >
-            <ArrowLeft className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+            <ArrowLeft className="h-4 w-4 icon-before" />
             {t('backToLogin')}
           </Button>
         </form>

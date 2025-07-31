@@ -191,3 +191,36 @@ export const RTLIcon: React.FC<RTLIconProps> = ({
 };
 
 export default RTLText;
+
+// Utility components for mixed RTL/LTR content
+export function EmailDisplay({ email, className = '' }: { email: string; className?: string }) {
+  return (
+    <span className={`preserve-ltr ${className}`}>
+      {email}
+    </span>
+  );
+}
+
+export function PhoneDisplay({ phone, className = '' }: { phone: string; className?: string }) {
+  return (
+    <span className={`preserve-ltr ${className}`}>
+      {phone}
+    </span>
+  );
+}
+
+export function UniversityIdDisplay({ universityId, className = '' }: { universityId: string; className?: string }) {
+  return (
+    <span className={`preserve-ltr ${className}`}>
+      {universityId}
+    </span>
+  );
+}
+
+export function PreserveLTR({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return (
+    <span className={`preserve-ltr ${className}`}>
+      {children}
+    </span>
+  );
+}

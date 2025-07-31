@@ -46,7 +46,8 @@ Egypt's premier campus food delivery application built with Next.js, designed sp
 - **Arabic Login**: `/ar/login` 
 - **English Signup**: `/en/signup`
 - **Arabic Signup**: `/ar/signup`
-- **Role Selection**: `/en/select-role` or `/ar/select-role`
+
+*Note: Role selection has been removed. New users are automatically assigned the 'student' role and can request role changes through support.*
 
 ### User Roles & Dashboards
 - **Students**: `/student-dashboard` - Order food, track deliveries

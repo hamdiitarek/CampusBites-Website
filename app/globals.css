@@ -233,6 +233,70 @@
   .dir-ltr {
     direction: ltr;
   }
+
+  /* Dashboard RTL utilities */
+  .dashboard-container {
+    min-height: 100vh;
+  }
+
+  [dir="rtl"] .dashboard-container {
+    text-align: right;
+  }
+
+  [dir="ltr"] .dashboard-container {
+    text-align: left;
+  }
+
+  /* RTL-aware spacing for dashboard elements */
+  .space-x-dashboard > :not([hidden]) ~ :not([hidden]) {
+    margin-left: 1rem;
+  }
+
+  [dir="rtl"] .space-x-dashboard > :not([hidden]) ~ :not([hidden]) {
+    margin-left: 0;
+    margin-right: 1rem;
+  }
+
+  /* RTL icon spacing utilities */
+  .icon-spacing-start {
+    margin-inline-end: 0.5rem;
+  }
+
+  .icon-spacing-end {
+    margin-inline-start: 0.5rem;
+  }
+
+  /* Mixed content utilities for RTL */
+  .ltr-content {
+    direction: ltr;
+    display: inline-block;
+    unicode-bidi: embed;
+  }
+
+  .rtl-content {
+    direction: rtl;
+    display: inline-block;
+    unicode-bidi: embed;
+  }
+
+  /* Email and ID formatting in RTL context */
+  .email-display,
+  .id-display {
+    direction: ltr;
+    unicode-bidi: embed;
+    display: inline-block;
+  }
+
+  /* Prevent English text reversal in Arabic context */
+  [dir="rtl"] .mixed-content {
+    unicode-bidi: plaintext;
+  }
+
+  [dir="rtl"] .preserve-ltr {
+    direction: ltr;
+    unicode-bidi: embed;
+    display: inline-block;
+  }
 }
 
 /* Enhanced RTL Typography and Indentation */
