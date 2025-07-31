@@ -1,21 +1,31 @@
 "use client";
 
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 const HTMLAttributeUpdater = () => {
   const { language, isRTL } = useLanguage();
+  const prevLanguageRef = useRef<string>();
 
   useEffect(() => {
-    // Update document direction and language attributes
-    document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
-    document.documentElement.lang = language;
+    // Only update when language actually changes (not on initial mount)
+    if (prevLanguageRef.current && prevLanguageRef.current !== language) {
+      const expectedDir = isRTL ? 'rtl' : 'ltr';
+      const expectedBodyClass = isRTL ? 'font-arabic' : 'font-inter';
+      
+      // Update document attributes
+      document.documentElement.dir = expectedDir;
+      document.documentElement.lang = language;
+      document.body.className = expectedBodyClass;
+    }
     
-    // Update body class for font switching
-    document.body.className = isRTL ? 'font-arabic' : 'font-inter';
+    // Update the previous language reference
+    prevLanguageRef.current = language;
   }, [language, isRTL]);
 
-  return null; // This component doesn't render anything
+  return null;
 };
 
 export default HTMLAttributeUpdater;
+
+

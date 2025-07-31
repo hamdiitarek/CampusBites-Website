@@ -86,7 +86,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" dir="ltr">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
         <meta name="theme-color" content="#ea580c" />
@@ -100,6 +100,50 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link rel="preconnect" href="https://images.unsplash.com" />
+        
+        {/* Arabic fonts for better rendering */}
+        <link 
+          href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" 
+          rel="stylesheet" 
+        />
+        
+        {/* Initial script to prevent layout shift */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                function setInitialDirection() {
+                  var path = window.location.pathname;
+                  var isArabic = path.startsWith('/ar');
+                  var html = document.documentElement;
+                  var body = document.body;
+                  
+                  if (isArabic) {
+                    html.dir = 'rtl';
+                    html.lang = 'ar';
+                    body.className = 'font-arabic';
+                    body.style.direction = 'rtl';
+                  } else {
+                    html.dir = 'ltr';
+                    html.lang = 'en';
+                    body.className = 'font-inter';
+                    body.style.direction = 'ltr';
+                  }
+                }
+                
+                // Run immediately if DOM is ready, otherwise wait
+                if (document.readyState === 'loading') {
+                  document.addEventListener('DOMContentLoaded', setInitialDirection);
+                } else {
+                  setInitialDirection();
+                }
+                
+                // Also run before React hydrates
+                setInitialDirection();
+              })();
+            `
+          }}
+        />
         
         {/* Arabic fonts for better rendering */}
         <link 
@@ -139,7 +183,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="font-inter">
+      <body suppressHydrationWarning>
         <Providers>
           {children}
         </Providers>

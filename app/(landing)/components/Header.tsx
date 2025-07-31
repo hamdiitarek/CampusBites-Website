@@ -1,14 +1,51 @@
 
 "use client";
 
-import { Menu, X } from 'lucide-react';
+import { Menu, X, User, LogOut } from 'lucide-react';
 import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import LanguageToggle from './LanguageToggle';
+import { Button } from './ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { t, isRTL } = useLanguage();
+  const { t, isRTL, language } = useLanguage();
+  const { user, logout } = useAuth();
+
+  const handleSignIn = () => {
+    window.location.href = `/${language}/login`;
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
+  const getDashboardUrl = () => {
+    if (!user?.role) return `/${language}/dashboard`;
+    
+    switch (user.role) {
+      case 'student':
+        return `/${language}/student-dashboard`;
+      case 'vendor':
+        return `/${language}/vendor-dashboard`;
+      case 'admin':
+        return `/${language}/admin-dashboard`;
+      default:
+        return `/${language}/dashboard`;
+    }
+  };
 
   return (
     <header className="fixed top-0 w-full bg-white/80 backdrop-blur-lg border-b border-gray-200/20 z-50">
@@ -59,12 +96,49 @@ const Header = () => {
           {/* Action Buttons */}
           <div className={`hidden md:flex items-center ${isRTL ? 'space-x-reverse space-x-4' : 'space-x-4'}`}>
             <LanguageToggle />
-            <button className="text-gray-600 hover:text-orange-600 transition-all duration-200 font-medium px-4 py-2 rounded-lg hover:bg-orange-50">
-              {t('signIn')}
-            </button>
-            <button className="bg-gradient-to-r from-orange-500 to-red-600 text-white px-6 py-2 rounded-full hover:from-orange-600 hover:to-red-700 transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl font-medium">
-              {t('getStarted')}
-            </button>
+            
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <User className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuItem className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{user.name}</p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {user.email}
+                      </p>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => window.location.href = getDashboardUrl()}>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Dashboard</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <button 
+                  onClick={handleSignIn}
+                  className="text-gray-600 hover:text-orange-600 transition-all duration-200 font-medium px-4 py-2 rounded-lg hover:bg-orange-50"
+                >
+                  {t('signIn')}
+                </button>
+                <button 
+                  onClick={handleSignIn}
+                  className="bg-gradient-to-r from-orange-500 to-red-600 text-white px-6 py-2 rounded-full hover:from-orange-600 hover:to-red-700 transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl font-medium"
+                >
+                  {t('getStarted')}
+                </button>
+              </>
+            )}
           </div>
 
           <button 
@@ -104,9 +178,37 @@ const Header = () => {
               </a>
               <div className="pt-4 border-t border-gray-200 space-y-4">
                 <LanguageToggle />
-                <button className="w-full bg-gradient-to-r from-orange-500 to-red-600 text-white px-6 py-3 rounded-full hover:from-orange-600 hover:to-red-700 transition-all duration-200 font-medium shadow-lg">
-                  {t('getStarted')}
-                </button>
+                {user ? (
+                  <div className="space-y-2">
+                    <div className="px-4 py-2 bg-gray-50 rounded-lg">
+                      <p className="text-sm font-medium">{user.name}</p>
+                      <p className="text-xs text-gray-600">{user.email}</p>
+                    </div>
+                    <Button
+                      onClick={() => window.location.href = getDashboardUrl()}
+                      className="w-full"
+                      variant="outline"
+                    >
+                      <User className="mr-2 h-4 w-4" />
+                      Dashboard
+                    </Button>
+                    <Button
+                      onClick={handleLogout}
+                      className="w-full"
+                      variant="outline"
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Log out
+                    </Button>
+                  </div>
+                ) : (
+                  <button 
+                    onClick={handleSignIn}
+                    className="w-full bg-gradient-to-r from-orange-500 to-red-600 text-white px-6 py-3 rounded-full hover:from-orange-600 hover:to-red-700 transition-all duration-200 font-medium shadow-lg"
+                  >
+                    {t('getStarted')}
+                  </button>
+                )}
               </div>
             </nav>
           </div>

@@ -19,7 +19,7 @@ const Hero = () => {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
         <div className={`grid grid-cols-1 lg:grid-cols-2 gap-12 items-center ${isRTL ? 'lg:grid-flow-col-dense' : ''}`}>
           {/* Text Content */}
-          <div className={`${isRTL ? 'lg:col-start-2 text-right' : 'lg:col-start-1 text-left'}`}>
+          <div className={`${isRTL ? 'lg:col-start-2' : 'lg:col-start-1'}`} dir={isRTL ? 'rtl' : 'ltr'}>
             {/* Badge */}
             <div className={`inline-flex items-center px-4 py-2 rounded-full bg-white/60 backdrop-blur-sm border border-orange-200 mb-8 ${isRTL ? 'flex-row-reverse' : ''}`}>
               <Star className={`w-4 h-4 text-yellow-500 icon-before`} />
@@ -27,24 +27,24 @@ const Hero = () => {
             </div>
 
             {/* Main headline with SEO-optimized structure */}
-            <h1 className={`text-5xl md:text-7xl font-bold mb-4 ${isRTL ? 'font-arabic rtl-text-spacing' : ''}`}>
+            <h1 className={`text-5xl md:text-7xl font-bold mb-4 ${isRTL ? 'font-arabic rtl-text-spacing text-start' : 'text-start'}`}>
               <span className="bg-gradient-to-r from-orange-600 via-red-600 to-orange-800 bg-clip-text text-transparent">
                 {t('heroTitle')}
               </span>
             </h1>
             
             {/* Subtitle with location-based keywords */}
-            <h2 className={`text-2xl md:text-3xl font-semibold text-gray-700 mb-6 ${isRTL ? 'rtl-text-spacing' : ''}`}>
+            <h2 className={`text-2xl md:text-3xl font-semibold text-gray-700 mb-6 ${isRTL ? 'rtl-text-spacing text-start font-arabic' : 'text-start'}`}>
               {t('heroSubtitle')}
             </h2>
 
             {/* Rich description with embedded keywords */}
-            <p className={`text-xl md:text-2xl text-gray-600 mb-8 max-w-4xl leading-relaxed paragraph-rtl ${isRTL ? 'rtl-text-spacing' : ''}`}>
+            <p className={`text-xl md:text-2xl text-gray-600 mb-8 max-w-4xl leading-relaxed paragraph-rtl ${isRTL ? 'rtl-text-spacing text-start font-arabic' : 'text-start'}`}>
               {t('heroDescription')}
             </p>
 
             {/* Local SEO keywords for Egyptian universities */}
-            <div className={`hidden md:flex flex-wrap gap-2 mb-8 ${isRTL ? 'justify-end flex-row-reverse' : 'justify-start'}`}>
+            <div className={`hidden md:flex flex-wrap gap-2 mb-8 ${isRTL ? 'justify-start flex-row-reverse' : 'justify-start'}`}>
               {[
                 isRTL ? "جامعة القاهرة" : "Cairo University",
                 isRTL ? "جامعة الإسكندرية" : "Alexandria University", 
@@ -61,12 +61,12 @@ const Hero = () => {
             </div>
 
             {/* CTA buttons */}
-            <div className={`btn-group-rtl flex-col sm:flex-row sm:gap-6 mb-16 ${isRTL ? 'items-end sm:items-center' : 'items-start sm:items-center'}`}>
-              <button className="group bg-gradient-to-r from-orange-500 to-red-600 text-white px-8 py-4 rounded-full text-lg font-semibold hover:from-orange-600 hover:to-red-700 transition-all duration-200 transform hover:scale-105 shadow-xl hover:shadow-2xl">
+            <div className={`btn-group-rtl flex-col sm:flex-row sm:gap-6 mb-16 ${isRTL ? 'items-start sm:items-start' : 'items-start sm:items-start'}`}>
+              <button className={`group bg-gradient-to-r from-orange-500 to-red-600 text-white px-8 py-4 rounded-full text-lg font-semibold hover:from-orange-600 hover:to-red-700 transition-all duration-200 transform hover:scale-105 shadow-xl hover:shadow-2xl ${isRTL ? 'font-arabic' : ''}`}>
                 <Download className={`w-5 h-5 inline-block icon-before`} />
                 {t('downloadApp')}
               </button>
-              <button className="group flex items-center px-8 py-4 rounded-full text-lg font-semibold text-gray-700 bg-white/60 backdrop-blur-sm border border-gray-200 hover:bg-white/80 transition-all duration-200 transform hover:scale-105">
+              <button className={`group flex items-center px-8 py-4 rounded-full text-lg font-semibold text-gray-700 bg-white/60 backdrop-blur-sm border border-gray-200 hover:bg-white/80 transition-all duration-200 transform hover:scale-105 ${isRTL ? 'font-arabic' : ''}`}>
                 <ShoppingBag className={`w-5 h-5 group-hover:text-orange-600 transition-colors icon-before`} />
                 {t('browseMenus')}
               </button>

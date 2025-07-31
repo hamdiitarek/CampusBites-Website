@@ -17,11 +17,11 @@ const CTA = () => {
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-white/5 rounded-full blur-3xl"></div>
       </div>
 
-      <div className={`relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${isRTL ? 'text-right' : 'text-center'}`}>
-        <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 animate-fadeInUp">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 className={`text-4xl md:text-6xl font-bold text-white mb-6 animate-fadeInUp ${isRTL ? 'font-arabic cta-extra-spacing' : ''}`}>
           {t('ctaTitle')}
         </h2>
-        <p className="text-xl md:text-2xl text-orange-100 mb-12 max-w-3xl mx-auto animate-fadeInUp" style={{ animationDelay: '0.2s' }}>
+        <p className={`text-xl md:text-2xl text-orange-100 mb-12 max-w-3xl mx-auto animate-fadeInUp ${isRTL ? 'font-arabic' : ''}`} style={{ animationDelay: '0.2s' }}>
           {t('ctaDescription')}
         </p>
 

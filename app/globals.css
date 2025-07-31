@@ -19,7 +19,7 @@
   
   body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    line-height: 1.6;
+    line-height: 1.8;
     font-size: 16px;
   }
 
@@ -33,8 +33,8 @@
   /* Headings optimization for SEO */
   h1, h2, h3, h4, h5, h6 {
     font-weight: 700;
-    line-height: 1.2;
-    margin-bottom: 0.5em;
+    line-height: 1.4;
+    margin-bottom: 0.8em;
   }
 
   h1 {
@@ -241,17 +241,17 @@
   .rtl-text-spacing {
     letter-spacing: 0.03em;
     word-spacing: 0.1em;
-    line-height: 1.8;
+    line-height: 2.2;
   }
   
-  /* RTL-aware indentation utilities */
+  /* RTL-aware indentation utilities using logical properties */
   .indent-rtl-4 {
     text-indent: 1rem;
   }
   
   [dir="rtl"] .indent-rtl-4 {
     text-indent: -1rem;
-    padding-right: 1rem;
+    padding-inline-start: 1rem;
   }
   
   .indent-rtl-8 {
@@ -260,41 +260,30 @@
   
   [dir="rtl"] .indent-rtl-8 {
     text-indent: -2rem;
-    padding-right: 2rem;
+    padding-inline-start: 2rem;
   }
   
-  /* RTL-aware list styling */
+  /* RTL-aware list styling using logical properties */
   .list-rtl {
     list-style-position: inside;
   }
   
   [dir="rtl"] .list-rtl {
     list-style-position: outside;
-    padding-right: 1.5rem;
-    padding-left: 0;
+    padding-inline-start: 1.5rem;
+    padding-inline-end: 0;
   }
   
-  /* Improved RTL paragraph spacing */
+  /* Improved RTL paragraph spacing using logical properties */
   .paragraph-rtl {
     margin-bottom: 1rem;
     text-align: start;
   }
   
-  [dir="rtl"] .paragraph-rtl {
-    text-align: right;
-  }
-  
-  /* RTL-aware quote styling */
+  /* RTL-aware quote styling using logical properties */
   .quote-rtl {
-    border-left: 4px solid theme('colors.orange.500');
-    padding-left: 1rem;
-  }
-  
-  [dir="rtl"] .quote-rtl {
-    border-left: none;
-    border-right: 4px solid theme('colors.orange.500');
-    padding-left: 0;
-    padding-right: 1rem;
+    border-inline-start: 4px solid theme('colors.orange.500');
+    padding-inline-start: 1rem;
   }
   
   /* Better RTL button alignment */
@@ -306,13 +295,9 @@
     @apply flex-row-reverse;
   }
   
-  /* RTL-aware card layouts */
+  /* RTL-aware card layouts using logical properties */
   .card-rtl {
-    @apply text-left;
-  }
-  
-  [dir="rtl"] .card-rtl {
-    @apply text-right;
+    text-align: start;
   }
   
   /* Enhanced Arabic numerals */
@@ -325,21 +310,13 @@
     unicode-bidi: embed;
   }
   
-  /* RTL-aware icon positioning */
+  /* RTL-aware icon positioning using logical properties */
   .icon-before {
-    @apply mr-2;
-  }
-  
-  [dir="rtl"] .icon-before {
-    @apply mr-0 ml-2;
+    margin-inline-end: 0.5rem;
   }
   
   .icon-after {
-    @apply ml-2;
-  }
-  
-  [dir="rtl"] .icon-after {
-    @apply ml-0 mr-2;
+    margin-inline-start: 0.5rem;
   }
 
   /* Enhanced RTL icon positioning - icons on the right for Arabic */
@@ -358,6 +335,27 @@
   
   [dir="rtl"] .feature-card-rtl .feature-icon {
     @apply self-end mb-6;
+  }
+  
+  /* Feature content alignment for both RTL and LTR */
+  .feature-content {
+    min-width: 0; /* Prevents flex overflow */
+  }
+  
+  .feature-content h4,
+  .feature-content p {
+    margin-inline-start: 0;
+  }
+  
+  /* Enhanced feature item alignment */
+  .feature-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  [dir="rtl"] .feature-item {
+    flex-direction: row-reverse;
   }
   
   /* Button icons for RTL */
@@ -542,37 +540,101 @@
     font-family: 'Inter', sans-serif;
   }
 
+  /* Font and direction classes */
   .font-arabic {
     font-family: 'Cairo', sans-serif;
+    line-height: 2.2;
+    letter-spacing: 0.025em;
+    font-feature-settings: "liga" on, "kern" on;
+    direction: rtl;
   }
   
-  /* Enhanced RTL Support */
+  .font-inter {
+    font-family: 'Inter', sans-serif;
+    line-height: 1.8;
+    direction: ltr;
+  }
+  
+  /* Enhanced RTL Support - Proper text alignment using logical properties */
   [dir="rtl"] {
-    text-align: right;
+    text-align: start;
   }
   
+  [dir="ltr"] {
+    text-align: start;
+  }
+  
+  /* Override Tailwind's text alignment for proper RTL support */
   [dir="rtl"] .text-left {
-    text-align: right;
+    text-align: start !important;
   }
   
   [dir="rtl"] .text-right {
-    text-align: left;
+    text-align: end !important;
   }
   
-  /* RTL-aware margins and paddings */
+  [dir="ltr"] .text-left {
+    text-align: start !important;
+  }
+  
+  [dir="ltr"] .text-right {
+    text-align: end !important;
+  }
+  
+  /* Center alignment works the same in both directions */
+  .text-center {
+    text-align: center !important;
+  }
+  
+  /* RTL-aware logical margins and paddings */
   [dir="rtl"] .ml-auto {
     margin-left: unset;
-    margin-right: auto;
+    margin-inline-start: auto;
   }
   
   [dir="rtl"] .mr-auto {
     margin-right: unset;
-    margin-left: auto;
+    margin-inline-end: auto;
   }
   
-  /* RTL-aware flex directions */
+  /* RTL-aware flex directions with proper reversing */
   [dir="rtl"] .flex-row {
     flex-direction: row-reverse;
+  }
+  
+  [dir="ltr"] .flex-row {
+    flex-direction: row;
+  }
+  
+  /* RTL-aware space-x utilities */
+  [dir="rtl"] .space-x-1 > :not([hidden]) ~ :not([hidden]) {
+    --tw-space-x-reverse: 1;
+    margin-right: calc(0.25rem * var(--tw-space-x-reverse));
+    margin-left: calc(0.25rem * calc(1 - var(--tw-space-x-reverse)));
+  }
+  
+  [dir="rtl"] .space-x-2 > :not([hidden]) ~ :not([hidden]) {
+    --tw-space-x-reverse: 1;
+    margin-right: calc(0.5rem * var(--tw-space-x-reverse));
+    margin-left: calc(0.5rem * calc(1 - var(--tw-space-x-reverse)));
+  }
+  
+  [dir="rtl"] .space-x-3 > :not([hidden]) ~ :not([hidden]) {
+    --tw-space-x-reverse: 1;
+    margin-right: calc(0.75rem * var(--tw-space-x-reverse));
+    margin-left: calc(0.75rem * calc(1 - var(--tw-space-x-reverse)));
+  }
+  
+  [dir="rtl"] .space-x-4 > :not([hidden]) ~ :not([hidden]) {
+    --tw-space-x-reverse: 1;
+    margin-right: calc(1rem * var(--tw-space-x-reverse));
+    margin-left: calc(1rem * calc(1 - var(--tw-space-x-reverse)));
+  }
+  
+  [dir="rtl"] .space-x-6 > :not([hidden]) ~ :not([hidden]) {
+    --tw-space-x-reverse: 1;
+    margin-right: calc(1.5rem * var(--tw-space-x-reverse));
+    margin-left: calc(1.5rem * calc(1 - var(--tw-space-x-reverse)));
   }
   
   /* RTL-aware transforms for arrows and icons */
@@ -596,7 +658,7 @@
   
   /* Better Arabic typography */
   .font-arabic {
-    line-height: 1.8;
+    line-height: 2.2;
     letter-spacing: 0.025em;
     font-feature-settings: "liga" on, "kern" on;
   }
@@ -671,5 +733,12 @@
   
   .dir-ltr {
     direction: ltr;
+  }
+  
+  /* Extra spacing specifically for CTA title */
+  .cta-extra-spacing {
+    line-height: 1.3 !important;
+    letter-spacing: 0.05em !important;
+    word-spacing: 0.2em !important;
   }
 }

@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/(landing)/components/ui/tooltip";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { Toaster } from "@/(landing)/components/ui/toaster";
 import { Toaster as Sonner } from "@/(landing)/components/ui/sonner";
 import HTMLAttributeUpdater from "@/components/HTMLAttributeUpdater";
@@ -19,10 +20,12 @@ export default function Providers({
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <LanguageProvider>
-          <HTMLAttributeUpdater />
-          <Toaster />
-          <Sonner />
-          {children}
+          <AuthProvider>
+            <HTMLAttributeUpdater />
+            <Toaster />
+            <Sonner />
+            {children}
+          </AuthProvider>
         </LanguageProvider>
       </TooltipProvider>
     </QueryClientProvider>

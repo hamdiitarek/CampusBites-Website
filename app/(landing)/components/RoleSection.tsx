@@ -89,12 +89,12 @@ const RoleSection = () => {
                   <div className="grid gap-6">
                     {role.features.map((feature, featureIndex) => (
                       <div key={featureIndex} className={`flex items-start gap-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                        <div className={`flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-r ${role.gradient} flex items-center justify-center`}>
+                        <div className={`feature-icon flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-r ${role.gradient} flex items-center justify-center`}>
                           <feature.icon className="w-6 h-6 text-white" />
                         </div>
-                        <div className="card-rtl">
-                          <h4 className={`font-semibold text-gray-900 mb-1 ${isRTL ? 'font-arabic' : ''}`}>{feature.title}</h4>
-                          <p className={`text-gray-600 paragraph-rtl ${isRTL ? 'rtl-text-spacing' : ''}`}>{feature.description}</p>
+                        <div className="feature-content flex-1">
+                          <h4 className={`font-semibold text-gray-900 mb-1 ${isRTL ? 'font-arabic text-start' : 'text-start'}`}>{feature.title}</h4>
+                          <p className={`text-gray-600 ${isRTL ? 'rtl-text-spacing text-start' : 'text-start'}`}>{feature.description}</p>
                         </div>
                       </div>
                     ))}

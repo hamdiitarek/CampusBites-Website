@@ -164,7 +164,74 @@ const translations: Translations = {
   goodMorning: { en: "Good morning, Sarah!", ar: "صباح الخير، سارة!" },
   searchFood: { en: "Search for food...", ar: "البحث عن الطعام..." },
   orderUpdate: { en: "Your pizza order is ready!", ar: "طلب البيتزا جاهز!" },
-  minutesAgo: { en: "5 minutes ago", ar: "منذ 5 دقائق" }
+  minutesAgo: { en: "5 minutes ago", ar: "منذ 5 دقائق" },
+
+  // Authentication
+  loginTitle: { en: "Welcome Back", ar: "مرحباً بعودتك" },
+  loginSubtitle: { en: "Sign in to your CampusBites account", ar: "سجل دخولك إلى حساب كامبوس بايتس" },
+  email: { en: "Email", ar: "البريد الإلكتروني" },
+  emailPlaceholder: { en: "Enter your email", ar: "أدخل بريدك الإلكتروني" },
+  password: { en: "Password", ar: "كلمة المرور" },
+  passwordPlaceholder: { en: "Enter your password", ar: "أدخل كلمة المرور" },
+  forgotPassword: { en: "Forgot Password?", ar: "نسيت كلمة المرور؟" },
+  signInButton: { en: "Sign In", ar: "تسجيل الدخول" },
+  dontHaveAccount: { en: "Don't have an account?", ar: "ليس لديك حساب؟" },
+  signUp: { en: "Sign Up", ar: "إنشاء حساب" },
+  
+  // Role Selection
+  selectRole: { en: "Select Your Role", ar: "اختر دورك" },
+  roleDescription: { en: "Choose how you want to use CampusBites", ar: "اختر كيف تريد استخدام كامبوس بايتس" },
+  studentRole: { en: "Student", ar: "طالب" },
+  studentRoleDesc: { en: "Order food from campus vendors", ar: "اطلب الطعام من موردي الحرم الجامعي" },
+  vendorRole: { en: "Food Vendor", ar: "مورد طعام" },
+  vendorRoleDesc: { en: "Manage your restaurant or food business", ar: "أدر مطعمك أو عملك في الطعام" },
+  adminRole: { en: "Administrator", ar: "مدير" },
+  adminRoleDesc: { en: "Manage campus dining operations", ar: "أدر عمليات تناول الطعام في الحرم الجامعي" },
+  continue: { en: "Continue", ar: "متابعة" },
+  
+  // Forgot Password
+  forgotPasswordTitle: { en: "Reset Your Password", ar: "إعادة تعيين كلمة المرور" },
+  forgotPasswordSubtitle: { en: "Enter your email to receive reset instructions", ar: "أدخل بريدك الإلكتروني لاستلام تعليمات إعادة التعيين" },
+  sendResetEmail: { en: "Send Reset Email", ar: "إرسال رسالة إعادة التعيين" },
+  backToLogin: { en: "Back to Login", ar: "العودة لتسجيل الدخول" },
+  resetEmailSent: { en: "Reset email sent! Check your inbox.", ar: "تم إرسال رسالة إعادة التعيين! تحقق من صندوق الوارد." },
+  
+  // Form Validation
+  emailRequired: { en: "Email is required", ar: "البريد الإلكتروني مطلوب" },
+  emailInvalid: { en: "Please enter a valid email", ar: "يرجى إدخال بريد إلكتروني صحيح" },
+  passwordRequired: { en: "Password is required", ar: "كلمة المرور مطلوبة" },
+  passwordMinLength: { en: "Password must be at least 8 characters", ar: "كلمة المرور يجب أن تكون 8 أحرف على الأقل" },
+  nameRequired: { en: "Name is required", ar: "الاسم مطلوب" },
+  roleRequired: { en: "Please select a role", ar: "يرجى اختيار دور" },
+  
+  // Error Messages
+  loginError: { en: "Invalid email or password", ar: "بريد إلكتروني أو كلمة مرور غير صحيحة" },
+  resetPasswordError: { en: "Failed to send reset email", ar: "فشل في إرسال رسالة إعادة التعيين" },
+  networkError: { en: "Network error. Please try again.", ar: "خطأ في الشبكة. يرجى المحاولة مرة أخرى." },
+  
+  // Success Messages
+  loginSuccess: { en: "Login successful!", ar: "تم تسجيل الدخول بنجاح!" },
+  logoutSuccess: { en: "Logout successful!", ar: "تم تسجيل الخروج بنجاح!" },
+  
+  // Registration
+  createAccount: { en: "Create Account", ar: "إنشاء حساب" },
+  signUpSubtitle: { en: "Join CampusBites today", ar: "انضم إلى كامبوس بايتس اليوم" },
+  fullName: { en: "Full Name", ar: "الاسم الكامل" },
+  namePlaceholder: { en: "Enter your full name", ar: "أدخل اسمك الكامل" },
+  confirmPassword: { en: "Confirm Password", ar: "تأكيد كلمة المرور" },
+  confirmPasswordPlaceholder: { en: "Confirm your password", ar: "أكد كلمة المرور" },
+  alreadyHaveAccount: { en: "Already have an account?", ar: "لديك حساب بالفعل؟" },
+  passwordsDoNotMatch: { en: "Passwords do not match", ar: "كلمات المرور غير متطابقة" },
+  registrationSuccess: { en: "Registration successful!", ar: "تم التسجيل بنجاح!" },
+  welcomeMessage: { en: "Welcome to CampusBites!", ar: "مرحباً بك في كامبوس بايتس!" },
+  emailAlreadyExists: { en: "Email already exists", ar: "البريد الإلكتروني موجود بالفعل" },
+  registrationError: { en: "Registration failed. Please try again.", ar: "فشل التسجيل. يرجى المحاولة مرة أخرى." },
+  loading: { en: "Loading...", ar: "جاري التحميل..." },
+  
+  // Role Selection Additional
+  welcomeBack: { en: "Welcome back", ar: "مرحباً بعودتك" },
+  roleUpdated: { en: "Role updated successfully!", ar: "تم تحديث الدور بنجاح!" },
+  redirectingToDashboard: { en: "Redirecting to your dashboard...", ar: "جاري التوجه إلى لوحة التحكم..." }
 };
 
 interface LanguageContextType {
@@ -203,15 +270,19 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return 'en';
   };
 
-  const [language, setLanguage] = useState<'en' | 'ar'>(() => getLanguageFromPath(pathname));
+  // Initialize language from URL immediately
+  const initialLanguage = getLanguageFromPath(pathname);
+  const [language, setLanguage] = useState<'en' | 'ar'>(initialLanguage);
   const [mounted, setMounted] = useState(false);
 
   // Update language when URL changes
   useEffect(() => {
     const newLanguage = getLanguageFromPath(pathname);
-    setLanguage(newLanguage);
+    if (newLanguage !== language) {
+      setLanguage(newLanguage);
+    }
     setMounted(true);
-  }, [pathname]);
+  }, [pathname, language]);
 
   // Save language preference to localStorage and cookies
   useEffect(() => {
@@ -243,21 +314,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const isRTL = language === 'ar';
 
-  // Don't render children until after hydration to prevent mismatch
-  if (!mounted) {
-    return (
-      <LanguageContext.Provider value={{ 
-        language: 'en', 
-        setLanguage: handleSetLanguage, 
-        t, 
-        isRTL: false,
-        navigateToLanguage 
-      }}>
-        {children}
-      </LanguageContext.Provider>
-    );
-  }
-
+  // Prevent hydration mismatch by always using the correct language from URL
   return (
     <LanguageContext.Provider value={{ 
       language, 

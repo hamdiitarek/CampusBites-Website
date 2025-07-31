@@ -25,24 +25,26 @@ const RTLContainer: React.FC<RTLContainerProps> = ({
   );
 };
 
-// Utility hooks for RTL-aware styling
+// Utility hooks for RTL-aware styling using logical properties
 export const useRTLClasses = () => {
   const { isRTL } = useLanguage();
   
   return {
     flexRow: isRTL ? 'flex-row-reverse' : 'flex-row',
     spaceX: (size: string) => isRTL ? `space-x-reverse space-x-${size}` : `space-x-${size}`,
-    textAlign: isRTL ? 'text-right' : 'text-left',
-    marginLeft: (size: string) => isRTL ? `mr-${size}` : `ml-${size}`,
-    marginRight: (size: string) => isRTL ? `ml-${size}` : `mr-${size}`,
-    paddingLeft: (size: string) => isRTL ? `pr-${size}` : `pl-${size}`,
-    paddingRight: (size: string) => isRTL ? `pl-${size}` : `pr-${size}`,
-    floatLeft: isRTL ? 'float-right' : 'float-left',
-    floatRight: isRTL ? 'float-left' : 'float-right',
-    borderLeft: isRTL ? 'border-r' : 'border-l',
-    borderRight: isRTL ? 'border-l' : 'border-r',
-    roundedLeft: isRTL ? 'rounded-r' : 'rounded-l',
-    roundedRight: isRTL ? 'rounded-l' : 'rounded-r',
+    textAlign: 'text-start', // Use logical property
+    textAlignCenter: 'text-center',
+    textAlignEnd: 'text-end', // Use logical property
+    marginStart: (size: string) => `ms-${size}`, // Using Tailwind's logical margin
+    marginEnd: (size: string) => `me-${size}`, // Using Tailwind's logical margin
+    paddingStart: (size: string) => `ps-${size}`, // Using Tailwind's logical padding
+    paddingEnd: (size: string) => `pe-${size}`, // Using Tailwind's logical padding
+    floatStart: isRTL ? 'float-right' : 'float-left',
+    floatEnd: isRTL ? 'float-left' : 'float-right',
+    borderStart: isRTL ? 'border-r' : 'border-l',
+    borderEnd: isRTL ? 'border-l' : 'border-r',
+    roundedStart: isRTL ? 'rounded-r' : 'rounded-l',
+    roundedEnd: isRTL ? 'rounded-l' : 'rounded-r',
   };
 };
 
@@ -72,7 +74,7 @@ export const RTLGrid: React.FC<{
   const { isRTL } = useLanguage();
   
   return (
-    <div className={`grid ${cols} ${className} ${isRTL ? 'text-right' : 'text-left'}`}>
+    <div className={`grid ${cols} ${className} text-start`}>
       {children}
     </div>
   );

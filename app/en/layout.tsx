@@ -13,8 +13,8 @@ export default function EnglishLayout({
   children: React.ReactNode;
 }) {
   return (
-    <>
+    <div dir="ltr" className="font-inter">
       {children}
-    </>
+    </div>
   );
 }

@@ -29,6 +29,42 @@ Egypt's premier campus food delivery application built with Next.js, designed sp
 - **State Management**: React Context API
 - **SEO**: Optimized meta tags and structured data
 
+## 🔐 Authentication System
+
+**CampusBites** now includes a complete authentication system with role-based access control using Appwrite:
+
+### Features
+- **Multi-language support**: Full Arabic (RTL) and English localization
+- **Role-based authentication**: Student, Vendor, and Admin roles
+- **Secure login/logout**: Email and password authentication
+- **Password recovery**: Forgot password functionality
+- **Protected routes**: Dashboard pages protected by role
+- **Responsive design**: Mobile-first authentication flows
+
+### Authentication Routes
+- **English Login**: `/en/login`
+- **Arabic Login**: `/ar/login` 
+- **English Signup**: `/en/signup`
+- **Arabic Signup**: `/ar/signup`
+- **Role Selection**: `/en/select-role` or `/ar/select-role`
+
+### User Roles & Dashboards
+- **Students**: `/student-dashboard` - Order food, track deliveries
+- **Vendors**: `/vendor-dashboard` - Manage menu, receive orders
+- **Admins**: `/admin-dashboard` - Platform oversight, vendor management
+
+### Setup Authentication
+1. **Create Appwrite Account**: Visit [Appwrite Cloud](https://cloud.appwrite.io)
+2. **Create Project**: Set up a new project and copy your credentials
+3. **Configure Environment**: Update `.env.local` with your Appwrite settings:
+   ```bash
+   NEXT_PUBLIC_APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
+   NEXT_PUBLIC_APPWRITE_PROJECT_ID=your-project-id
+   ```
+4. **Test Login**: Visit `/en/login` or `/ar/login` to test authentication
+
+See `AUTH_SETUP.md` for detailed setup instructions.
+
 ## 🚀 Quick Start
 
 ### Prerequisites

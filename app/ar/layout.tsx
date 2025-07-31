@@ -13,8 +13,8 @@ export default function ArabicLayout({
   children: React.ReactNode;
 }) {
   return (
-    <>
+    <div dir="rtl" className="font-arabic">
       {children}
-    </>
+    </div>
   );
 }
