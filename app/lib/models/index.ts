@@ -265,6 +265,51 @@ export interface VendorAnalytics {
 }
 
 // ========================================
+// One-Time Code Models
+// ========================================
+
+export interface OneTimeCode {
+  id: string;                  // Code ID (the actual code)
+  code: string;                // The verification code (6-8 digits/chars)
+  type: 'vendor' | 'admin';    // Type of account this code creates
+  universityId: string;        // University this code is linked to
+  universityName: string;      // University name for display
+  createdBy: string;           // Super admin who created the code
+  createdAt: Timestamp;        // Creation timestamp
+  expiresAt: Timestamp;        // Expiration timestamp
+  usedAt?: Timestamp;          // When the code was used (if used)
+  usedBy?: string;             // User ID who used the code
+  isActive: boolean;           // Whether the code is still active
+  maxUses: number;             // Maximum number of times it can be used (default: 1)
+  usageCount: number;          // How many times it has been used
+  metadata?: {                 // Additional metadata
+    createdByName?: string;    // Name of super admin who created it
+    notes?: string;            // Any notes about the code
+    restrictions?: {           // Additional restrictions
+      emailDomain?: string;    // Restrict to specific email domain
+      specificEmail?: string;  // Restrict to specific email
+    };
+  };
+}
+
+export interface CreateOneTimeCodeRequest {
+  type: 'vendor' | 'admin';
+  universityId: string;
+  expiresInHours?: number;     // Hours until expiration (default: 168 = 7 days)
+  maxUses?: number;            // Maximum uses (default: 1)
+  notes?: string;              // Optional notes
+  emailDomain?: string;        // Optional email domain restriction
+  specificEmail?: string;      // Optional specific email restriction
+}
+
+export interface OneTimeCodeValidationResult {
+  isValid: boolean;
+  code?: OneTimeCode;
+  error?: string;
+  universityInfo?: University;
+}
+
+// ========================================
 // Admin Dashboard Models
 // ========================================
 
@@ -278,6 +323,8 @@ export interface DashboardStats {
   totalRevenue: number;        // Total revenue
   pendingOrders: number;       // Pending orders count
   activeComplaints: number;    // Open complaints count
+  totalOneTimeCodes: number;   // Total one-time codes created
+  activeOneTimeCodes: number;  // Active (unused) one-time codes
   period?: string;             // Stats period
   lastUpdated?: Timestamp;     // Last calculation time
 }

@@ -24,7 +24,8 @@ import {
   Database,
   CreditCard,
   MessageSquare,
-  AlertTriangle
+  AlertTriangle,
+  Key
 } from 'lucide-react';
 
 interface SuperAdminSidebarProps {
@@ -68,6 +69,14 @@ const navigation = [
         icon: GraduationCap,
         description: 'University settings and management',
         descriptionAr: 'إعدادات وإدارة الجامعات'
+      },
+      {
+        name: 'One-Time Codes',
+        nameAr: 'رموز الاستخدام الواحد',
+        href: '/super-admin-dashboard/one-time-codes',
+        icon: Key,
+        description: 'Manage signup codes for vendors and admins',
+        descriptionAr: 'إدارة رموز التسجيل للبائعين والمدراء'
       }
     ]
   },

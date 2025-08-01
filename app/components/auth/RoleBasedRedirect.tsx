@@ -6,31 +6,19 @@ import { useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 
 export function RoleBasedRedirect() {
-  const { user, loading } = useAuth();
-  const { t } = useLanguage();
+  const { user, loading, getUserDashboardUrl } = useAuth();
+  const { t, language } = useLanguage();
 
   useEffect(() => {
     if (!loading && user) {
-      const role = user.role;
-      
-      if (role === 'student') {
-        window.location.href = '/student-dashboard';
-      } else if (role === 'vendor') {
-        window.location.href = '/vendor-dashboard';
-      } else if (role === 'admin') {
-        window.location.href = '/admin-dashboard';
-      } else if (role === 'super-admin') {
-        window.location.href = '/super-admin-dashboard';
-      } else {
-        // If no role is set, redirect to login for re-authentication
-        // This shouldn't happen with new registration flow
-        window.location.href = '/login';
-      }
+      // Use the proper dashboard URL method with language support
+      const dashboardUrl = getUserDashboardUrl(language);
+      window.location.href = dashboardUrl;
     } else if (!loading && !user) {
       // If not authenticated, redirect to login
-      window.location.href = '/login';
+      window.location.href = `/${language}/login`;
     }
-  }, [user, loading]);
+  }, [user, loading, getUserDashboardUrl, language]);
 
   if (loading) {
     return (

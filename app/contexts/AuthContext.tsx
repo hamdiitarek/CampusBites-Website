@@ -27,7 +27,7 @@ interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<UserCredential>;
-  register: (email: string, password: string, name: string, role: 'student' | 'vendor' | 'admin' | 'super-admin') => Promise<void>;
+  register: (email: string, password: string, name: string, role: 'vendor' | 'admin' | 'super-admin') => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (newPassword: string, oldPassword: string) => Promise<void>;
@@ -146,7 +146,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const register = async (email: string, password: string, name: string, role: 'student' | 'vendor' | 'admin' | 'super-admin') => {
+  const register = async (email: string, password: string, name: string, role: 'vendor' | 'admin' | 'super-admin') => {
     try {
       const result = await createUserWithEmailAndPassword(auth, email, password);
       
@@ -231,8 +231,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!user?.role) return `/${language}/login`;
     
     switch (user.role) {
-      case 'student':
-        return `/${language}/student-dashboard`;
       case 'vendor':
         return `/${language}/vendor-dashboard`;
       case 'admin':

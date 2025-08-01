@@ -225,6 +225,29 @@ export function SuperAdminDashboard() {
   };
 
   // Helper functions for UI
+  const formatDate = (date: any): string => {
+    if (!date) return 'N/A';
+    
+    try {
+      // Handle Firestore Timestamp
+      if (date.toDate && typeof date.toDate === 'function') {
+        return date.toDate().toLocaleDateString();
+      }
+      // Handle string dates
+      if (typeof date === 'string') {
+        return new Date(date).toLocaleDateString();
+      }
+      // Handle Date objects
+      if (date instanceof Date) {
+        return date.toLocaleDateString();
+      }
+      return 'N/A';
+    } catch (error) {
+      console.warn('Error formatting date:', error);
+      return 'N/A';
+    }
+  };
+
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
       case 'super-admin': return 'default';
@@ -599,7 +622,7 @@ export function SuperAdminDashboard() {
                               ${user.walletBalance || 0}
                             </p>
                             <p className="text-xs text-gray-500">
-                              Joined: {user.createdAt ? new Date(user.createdAt.toDate()).toLocaleDateString() : 'N/A'}
+                              Joined: {formatDate(user.createdAt)}
                             </p>
                           </div>
                           <DropdownMenu>

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { LoginForm } from './LoginForm';
 import { ForgotPasswordForm } from './ForgotPasswordForm';
-import { RegisterForm } from './RegisterForm';
+import { RegisterFormWrapper } from './RegisterFormWrapper';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePathname, useRouter } from 'next/navigation';
@@ -14,7 +14,7 @@ type AuthView = 'login' | 'forgot-password' | 'register';
 export function AuthContainer() {
   const [currentView, setCurrentView] = useState<AuthView>('login');
   const { isRTL, language, t } = useLanguage();
-  const { user, loading } = useAuth();
+  const { user, loading, getUserDashboardUrl } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -33,12 +33,8 @@ export function AuthContainer() {
   useEffect(() => {
     if (!loading && user) {
       if (user.role) {
-        // User is logged in and has a role, redirect to dashboard
-        const dashboardUrl = user.role === 'student' ? `/${language}/student-dashboard` : 
-                            user.role === 'vendor' ? `/${language}/vendor-dashboard` : 
-                            user.role === 'admin' ? `/${language}/admin-dashboard` :
-                            user.role === 'super-admin' ? `/${language}/super-admin-dashboard` :
-                            `/${language}/login`;
+        // User is logged in and has a role, redirect to appropriate dashboard
+        const dashboardUrl = getUserDashboardUrl(language);
         window.location.href = dashboardUrl;
       } else {
         // User is logged in but doesn't have a role, this shouldn't happen with new registration
@@ -46,7 +42,7 @@ export function AuthContainer() {
         window.location.href = `/${language}/login`;
       }
     }
-  }, [user, loading, language]);
+  }, [user, loading, language, getUserDashboardUrl]);
 
   // Show loading while checking authentication
   if (loading) {
@@ -90,7 +86,7 @@ export function AuthContainer() {
           <ForgotPasswordForm onBackToLogin={handleBackToLogin} />
         )}
         {currentView === 'register' && (
-          <RegisterForm onBackToLogin={handleBackToLogin} />
+          <RegisterFormWrapper onBackToLogin={handleBackToLogin} />
         )}
       </div>
     </div>

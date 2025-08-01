@@ -9,6 +9,8 @@ import {
   getDoc,
   updateDoc,
   deleteDoc,
+  setDoc,
+  addDoc,
   Timestamp 
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -20,6 +22,10 @@ import type {
   Order,
   OrderData,
   UniversityData,
+  OneTimeCode,
+  CreateOneTimeCodeRequest,
+  OneTimeCodeValidationResult,
+  University,
   USER_ROLES,
   ORDER_STATUS,
   COLLECTIONS
@@ -220,12 +226,13 @@ export class SuperAdminService {
   // Get dashboard statistics
   static async getDashboardStats() {
     try {
-      const [users, vendors, universities, orders, complaints] = await Promise.all([
+      const [users, vendors, universities, orders, complaints, oneTimeCodes] = await Promise.all([
         getDocs(collection(db, 'users')),
         getDocs(collection(db, 'vendors')),
         getDocs(collection(db, 'universities')),
         getDocs(collection(db, 'orders')),
-        getDocs(collection(db, 'complaints'))
+        getDocs(collection(db, 'complaints')),
+        getDocs(collection(db, 'oneTimeCodes'))
       ]);
 
       // Count users by role
@@ -249,6 +256,12 @@ export class SuperAdminService {
         return acc;
       }, {} as Record<string, number>);
 
+      // Count one-time codes
+      const activeOneTimeCodes = oneTimeCodes.docs.filter(doc => {
+        const data = doc.data();
+        return data.isActive && data.expiresAt.toMillis() > Date.now();
+      }).length;
+
       return {
         totalUsers: users.size,
         totalStudents: usersByRole.student || 0,
@@ -258,6 +271,8 @@ export class SuperAdminService {
         totalUniversities: universities.size,
         totalOrders: orders.size,
         totalComplaints: complaints.size,
+        totalOneTimeCodes: oneTimeCodes.size,
+        activeOneTimeCodes,
         ordersByStatus,
         complaintsByStatus,
         approvedVendors: vendors.docs.filter(doc => doc.data().isApproved).length,
@@ -275,6 +290,8 @@ export class SuperAdminService {
         totalUniversities: 0,
         totalOrders: 0,
         totalComplaints: 0,
+        totalOneTimeCodes: 0,
+        activeOneTimeCodes: 0,
         ordersByStatus: {},
         complaintsByStatus: {},
         approvedVendors: 0,
@@ -449,4 +466,275 @@ export class SuperAdminService {
       return [];
     }
   }
+
+  // ========================================
+  // One-Time Code Management Functions
+  // ========================================
+
+  /**
+   * Generate a random code for one-time use
+   */
+  private static generateCode(): string {
+    // Generate a 8-character alphanumeric code
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < 8; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  }
+
+  /**
+   * Create a new one-time code
+   */
+  static async createOneTimeCode(
+    request: CreateOneTimeCodeRequest, 
+    createdBy: string,
+    createdByName?: string
+  ): Promise<OneTimeCode> {
+    try {
+      const code = this.generateCode();
+      const now = Timestamp.now();
+      const expiresInHours = request.expiresInHours || 168; // Default 7 days
+      const expiresAt = Timestamp.fromMillis(now.toMillis() + (expiresInHours * 60 * 60 * 1000));
+
+      const oneTimeCode: OneTimeCode = {
+        id: code,
+        code: code,
+        type: request.type,
+        universityId: request.universityId,
+        universityName: '',
+        createdBy,
+        createdAt: now,
+        expiresAt,
+        isActive: true,
+        maxUses: request.maxUses || 1,
+        usageCount: 0,
+        metadata: {
+          createdByName,
+          notes: request.notes,
+          restrictions: {
+            emailDomain: request.emailDomain,
+            specificEmail: request.specificEmail
+          }
+        }
+      };
+
+      // Get university name
+      const universityDoc = await getDoc(doc(db, 'universities', request.universityId));
+      if (universityDoc.exists()) {
+        oneTimeCode.universityName = universityDoc.data().name;
+      }
+
+      // Save to Firestore
+      await setDoc(doc(db, 'oneTimeCodes', code), oneTimeCode);
+
+      return oneTimeCode;
+    } catch (error) {
+      console.error('Error creating one-time code:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Validate a one-time code
+   */
+  static async validateOneTimeCode(code: string, email?: string): Promise<OneTimeCodeValidationResult> {
+    try {
+      const codeDoc = await getDoc(doc(db, 'oneTimeCodes', code));
+      
+      if (!codeDoc.exists()) {
+        return {
+          isValid: false,
+          error: 'Code not found'
+        };
+      }
+
+      const codeData = codeDoc.data() as OneTimeCode;
+
+      // Check if code is active
+      if (!codeData.isActive) {
+        return {
+          isValid: false,
+          error: 'Code has been deactivated'
+        };
+      }
+
+      // Check if code has expired
+      if (codeData.expiresAt.toMillis() < Date.now()) {
+        return {
+          isValid: false,
+          error: 'Code has expired'
+        };
+      }
+
+      // Check if code has reached max uses
+      if (codeData.usageCount >= codeData.maxUses) {
+        return {
+          isValid: false,
+          error: 'Code has reached maximum usage limit'
+        };
+      }
+
+      // Check email restrictions if provided
+      if (email && codeData.metadata?.restrictions) {
+        const { emailDomain, specificEmail } = codeData.metadata.restrictions;
+        
+        if (specificEmail && email !== specificEmail) {
+          return {
+            isValid: false,
+            error: 'This code is restricted to a specific email address'
+          };
+        }
+        
+        if (emailDomain && !email.endsWith(`@${emailDomain}`)) {
+          return {
+            isValid: false,
+            error: `This code is restricted to ${emailDomain} email addresses`
+          };
+        }
+      }
+
+      // Get university info
+      const universityDoc = await getDoc(doc(db, 'universities', codeData.universityId));
+      const universityInfo = universityDoc.exists() ? universityDoc.data() as University : undefined;
+
+      return {
+        isValid: true,
+        code: codeData,
+        universityInfo
+      };
+    } catch (error) {
+      console.error('Error validating one-time code:', error);
+      return {
+        isValid: false,
+        error: 'Error validating code'
+      };
+    }
+  }
+
+  /**
+   * Use a one-time code (mark as used)
+   */
+  static async useOneTimeCode(code: string, usedBy: string): Promise<void> {
+    try {
+      const codeRef = doc(db, 'oneTimeCodes', code);
+      const codeDoc = await getDoc(codeRef);
+      
+      if (!codeDoc.exists()) {
+        throw new Error('Code not found');
+      }
+
+      const codeData = codeDoc.data() as OneTimeCode;
+      
+      // Update usage information
+      const updates: Partial<OneTimeCode> = {
+        usageCount: codeData.usageCount + 1,
+        usedAt: Timestamp.now(),
+        usedBy
+      };
+
+      // If this was the last use, deactivate the code
+      if (codeData.usageCount + 1 >= codeData.maxUses) {
+        updates.isActive = false;
+      }
+
+      await updateDoc(codeRef, updates);
+    } catch (error) {
+      console.error('Error using one-time code:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all one-time codes
+   */
+  static async getAllOneTimeCodes(): Promise<OneTimeCode[]> {
+    try {
+      const q = query(collection(db, 'oneTimeCodes'), orderBy('createdAt', 'desc'));
+      const snapshot = await getDocs(q);
+      
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as OneTimeCode[];
+    } catch (error) {
+      console.error('Error fetching one-time codes:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get active one-time codes
+   */
+  static async getActiveOneTimeCodes(): Promise<OneTimeCode[]> {
+    try {
+      const q = query(
+        collection(db, 'oneTimeCodes'),
+        where('isActive', '==', true),
+        orderBy('createdAt', 'desc')
+      );
+      const snapshot = await getDocs(q);
+      
+      const codes = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as OneTimeCode[];
+
+      // Filter out expired codes
+      return codes.filter(code => code.expiresAt.toMillis() > Date.now());
+    } catch (error) {
+      console.error('Error fetching active one-time codes:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Deactivate a one-time code
+   */
+  static async deactivateOneTimeCode(codeId: string): Promise<void> {
+    try {
+      const codeRef = doc(db, 'oneTimeCodes', codeId);
+      await updateDoc(codeRef, { isActive: false });
+    } catch (error) {
+      console.error('Error deactivating one-time code:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a one-time code
+   */
+  static async deleteOneTimeCode(codeId: string): Promise<void> {
+    try {
+      const codeRef = doc(db, 'oneTimeCodes', codeId);
+      await deleteDoc(codeRef);
+    } catch (error) {
+      console.error('Error deleting one-time code:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get one-time codes by university
+   */
+  static async getOneTimeCodesByUniversity(universityId: string): Promise<OneTimeCode[]> {
+    try {
+      const q = query(
+        collection(db, 'oneTimeCodes'),
+        where('universityId', '==', universityId),
+        orderBy('createdAt', 'desc')
+      );
+      const snapshot = await getDocs(q);
+      
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as OneTimeCode[];
+    } catch (error) {
+      console.error('Error fetching one-time codes by university:', error);
+      return [];
+    }
+  }
+
 }
