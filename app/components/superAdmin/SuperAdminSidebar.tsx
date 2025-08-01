@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 import { Button } from '@/(landing)/components/ui/button';
-import { ScrollArea } from '@/(landing)/components/ui/scroll-area';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/(landing)/components/ui/tooltip';
 import { 
   LayoutDashboard,
   Users,
@@ -29,6 +29,7 @@ import {
 
 interface SuperAdminSidebarProps {
   className?: string;
+  onNavigate?: () => void;
 }
 
 const navigation = [
@@ -162,7 +163,7 @@ const navigation = [
   }
 ];
 
-export function SuperAdminSidebar({ className }: SuperAdminSidebarProps) {
+export function SuperAdminSidebar({ className, onNavigate }: SuperAdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { isRTL } = useLanguage();
@@ -170,6 +171,8 @@ export function SuperAdminSidebar({ className }: SuperAdminSidebarProps) {
   const handleNavigation = (href: string) => {
     const basePath = isRTL ? '/ar' : '/en';
     router.push(`${basePath}${href}`);
+    // Call onNavigate callback for mobile sidebar closing
+    onNavigate?.();
   };
 
   const isActive = (href: string) => {
@@ -178,84 +181,114 @@ export function SuperAdminSidebar({ className }: SuperAdminSidebarProps) {
   };
 
   return (
-    <div className={cn('pb-12 min-h-screen', className)}>
-      <div className="space-y-4 py-4">
-        <div className="px-3 py-2">
-          <div className="flex items-center mb-6">
-            <Shield className="h-8 w-8 text-primary mr-3" />
-            <div>
-              <h2 className="text-lg font-semibold tracking-tight">
-                Super Admin
-              </h2>
-              <p className="text-xs text-muted-foreground">
-                {isRTL ? 'أعلى صلاحية' : 'Highest Authority'}
-              </p>
-            </div>
+    <TooltipProvider delayDuration={200} skipDelayDuration={100}>
+      <div className={cn('flex flex-col h-full min-h-0 relative', className)} style={{ zIndex: 1 }}>
+      <div className="flex-shrink-0 px-4 py-4">
+        <div className="flex items-center mb-6">
+          <Shield className="h-8 w-8 text-primary mr-3" />
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight">
+              Super Admin
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              {isRTL ? 'أعلى صلاحية' : 'Highest Authority'}
+            </p>
           </div>
-          
-          <ScrollArea className="h-[calc(100vh-8rem)]">
-            <div className="space-y-1">
-              {navigation.map((section, index) => (
-                <div key={index}>
-                  {section.category ? (
-                    // Category section
-                    <div className="pb-2">
-                      <h3 className="mb-2 px-4 text-sm font-semibold tracking-tight text-muted-foreground">
-                        {isRTL ? section.categoryAr : section.category}
-                      </h3>
-                      <div className="space-y-1">
-                        {section.items?.map((item) => (
-                          <Button
-                            key={item.href}
-                            variant={isActive(item.href) ? 'secondary' : 'ghost'}
-                            className={cn(
-                              'w-full justify-start h-auto py-2 px-4',
-                              isActive(item.href) && 'bg-muted font-medium',
-                              isRTL && 'flex-row-reverse text-right'
-                            )}
-                            onClick={() => handleNavigation(item.href)}
-                          >
-                            <item.icon className={cn('h-4 w-4', isRTL ? 'ml-2' : 'mr-2')} />
-                            <div className={cn('flex flex-col items-start', isRTL && 'items-end')}>
-                              <span className="text-sm">
-                                {isRTL ? item.nameAr : item.name}
-                              </span>
-                              <span className="text-xs text-muted-foreground">
-                                {isRTL ? item.descriptionAr : item.description}
-                              </span>
-                            </div>
-                          </Button>
-                        ))}
-                      </div>
+        </div>
+      </div>
+      
+      <div className="flex-1 min-h-0 overflow-y-auto dashboard-scroll sidebar-scroll-area">
+        <div className="px-4 pb-24 min-h-full">
+          <div className="space-y-2">
+            {navigation.map((section, index) => (
+              <div key={index}>
+                {section.category ? (
+                  // Category section
+                  <div className="pb-3">
+                    <h3 className="mb-3 px-3 text-sm font-semibold tracking-tight text-muted-foreground uppercase">
+                      {isRTL ? section.categoryAr : section.category}
+                    </h3>
+                    <div className="space-y-2">
+                      {section.items?.map((item) => (
+                        <Button
+                          key={item.href}
+                          variant={isActive(item.href) ? 'secondary' : 'ghost'}
+                          className={cn(
+                            'w-full justify-start h-auto py-3 px-4 min-h-[60px]',
+                            isActive(item.href) && 'bg-muted font-medium',
+                            isRTL && 'flex-row-reverse text-right'
+                          )}
+                          onClick={() => handleNavigation(item.href)}
+                        >
+                          <item.icon className={cn('h-4 w-4 flex-shrink-0', isRTL ? 'ml-3' : 'mr-3')} />
+                          <div className={cn('flex flex-col items-start min-w-0 flex-1', isRTL && 'items-end')}>
+                            <span className="text-sm font-medium leading-tight sidebar-button-text">
+                              {isRTL ? item.nameAr : item.name}
+                            </span>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="text-xs text-muted-foreground leading-tight mt-1 line-clamp-2 break-words sidebar-button-text cursor-help">
+                                  {isRTL ? item.descriptionAr : item.description}
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent 
+                                side="right" 
+                                sideOffset={10}
+                                className="max-w-md z-[999999] bg-popover border shadow-lg text-popover-foreground tooltip-portal whitespace-nowrap"
+                                avoidCollisions={true}
+                                collisionPadding={10}
+                                style={{ zIndex: 999999 }}
+                              >
+                                <p className="text-sm leading-relaxed whitespace-nowrap">{isRTL ? item.descriptionAr : item.description}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
+                        </Button>
+                      ))}
                     </div>
-                  ) : (
-                    // Single item
-                    <Button
-                      variant={isActive(section.href!) ? 'secondary' : 'ghost'}
-                      className={cn(
-                        'w-full justify-start h-auto py-2 px-4',
-                        isActive(section.href!) && 'bg-muted font-medium',
-                        isRTL && 'flex-row-reverse text-right'
-                      )}
-                      onClick={() => handleNavigation(section.href!)}
-                    >
-                      <section.icon className={cn('h-4 w-4', isRTL ? 'ml-2' : 'mr-2')} />
-                      <div className={cn('flex flex-col items-start', isRTL && 'items-end')}>
-                        <span className="text-sm">
-                          {isRTL ? section.nameAr : section.name}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {isRTL ? section.descriptionAr : section.description}
-                        </span>
-                      </div>
-                    </Button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
+                  </div>
+                ) : (
+                  // Single item
+                  <Button
+                    variant={isActive(section.href!) ? 'secondary' : 'ghost'}
+                    className={cn(
+                      'w-full justify-start h-auto py-3 px-4 min-h-[60px]',
+                      isActive(section.href!) && 'bg-muted font-medium',
+                      isRTL && 'flex-row-reverse text-right'
+                    )}
+                    onClick={() => handleNavigation(section.href!)}
+                  >
+                    <section.icon className={cn('h-4 w-4 flex-shrink-0', isRTL ? 'ml-3' : 'mr-3')} />
+                    <div className={cn('flex flex-col items-start min-w-0 flex-1', isRTL && 'items-end')}>
+                      <span className="text-sm font-medium leading-tight sidebar-button-text">
+                        {isRTL ? section.nameAr : section.name}
+                      </span>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="text-xs text-muted-foreground leading-tight mt-1 line-clamp-2 break-words sidebar-button-text cursor-help">
+                            {isRTL ? section.descriptionAr : section.description}
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent 
+                          side="right" 
+                          sideOffset={10}
+                          className="max-w-md z-[999999] bg-popover border shadow-lg text-popover-foreground tooltip-portal whitespace-nowrap"
+                          avoidCollisions={true}
+                          collisionPadding={10}
+                          style={{ zIndex: 999999 }}
+                        >
+                          <p className="text-sm leading-relaxed whitespace-nowrap">{isRTL ? section.descriptionAr : section.description}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
+    </TooltipProvider>
   );
 }

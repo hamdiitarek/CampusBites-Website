@@ -34,12 +34,14 @@ import {
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/(landing)/components/ui/dropdown-menu';
 import { 
   SuperAdminService,
-  UserData,
-  VendorData,
-  UniversityData,
-  OrderData,
+  EnrichedOrderData,
   ComplaintData
 } from '@/lib/superAdminService';
+import type {
+  UserData,
+  VendorData,
+  UniversityData
+} from '@/lib/models';
 import { useToast } from '@/hooks/use-toast';
 
 export function SuperAdminDashboard() {
@@ -56,7 +58,7 @@ export function SuperAdminDashboard() {
   const [users, setUsers] = useState<UserData[]>([]);
   const [vendors, setVendors] = useState<VendorData[]>([]);
   const [universities, setUniversities] = useState<UniversityData[]>([]);
-  const [recentOrders, setRecentOrders] = useState<OrderData[]>([]);
+  const [recentOrders, setRecentOrders] = useState<EnrichedOrderData[]>([]);
   const [complaints, setComplaints] = useState<ComplaintData[]>([]);
   const [dashboardStats, setDashboardStats] = useState<any>({});
   
@@ -484,7 +486,7 @@ export function SuperAdminDashboard() {
                 <CardContent>
                   <div className="space-y-4">
                     {users.slice(0, 5).map((user) => (
-                      <div key={user.uid} className="flex items-center space-x-4">
+                      <div key={user.id} className="flex items-center space-x-4">
                         <div className="flex-shrink-0">
                           {getRoleIcon(user.role)}
                         </div>
@@ -531,7 +533,7 @@ export function SuperAdminDashboard() {
                     <SelectContent>
                       <SelectItem value="all">All Universities</SelectItem>
                       {universities.map((university) => (
-                        <SelectItem key={university.id} value={university.id}>
+                        <SelectItem key={university.id} value={university.name}>
                           {university.name}
                         </SelectItem>
                       ))}
@@ -573,7 +575,7 @@ export function SuperAdminDashboard() {
                 ) : (
                   <div className="space-y-4">
                     {filteredUsers.map((user) => (
-                      <div key={user.uid} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+                      <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
                         <div className="flex items-center space-x-4">
                           <div className="flex-shrink-0">
                             {getRoleIcon(user.role)}
@@ -597,7 +599,7 @@ export function SuperAdminDashboard() {
                               ${user.walletBalance || 0}
                             </p>
                             <p className="text-xs text-gray-500">
-                              Joined: {new Date(user.createdAt).toLocaleDateString()}
+                              Joined: {user.createdAt ? new Date(user.createdAt.toDate()).toLocaleDateString() : 'N/A'}
                             </p>
                           </div>
                           <DropdownMenu>
@@ -607,25 +609,25 @@ export function SuperAdminDashboard() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleViewUserProfile(user.uid)}>
+                              <DropdownMenuItem onClick={() => handleViewUserProfile(user.id)}>
                                 <UserCheck className="h-4 w-4 mr-2" />
                                 View Profile
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleViewUserOrders(user.uid)}>
+                              <DropdownMenuItem onClick={() => handleViewUserOrders(user.id)}>
                                 <ShoppingCart className="h-4 w-4 mr-2" />
                                 View Orders
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleChangeUserRole(user.uid)}>
+                              <DropdownMenuItem onClick={() => handleChangeUserRole(user.id)}>
                                 <Shield className="h-4 w-4 mr-2" />
                                 Change Role
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleResetUserPassword(user.uid)}>
+                              <DropdownMenuItem onClick={() => handleResetUserPassword(user.id)}>
                                 <AlertCircle className="h-4 w-4 mr-2" />
                                 Reset Password
                               </DropdownMenuItem>
                               <DropdownMenuItem 
                                 className="text-red-600"
-                                onClick={() => handleSuspendUser(user.uid)}
+                                onClick={() => handleSuspendUser(user.id)}
                               >
                                 <XCircle className="h-4 w-4 mr-2" />
                                 Suspend User

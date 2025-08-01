@@ -14,24 +14,17 @@ import {
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
+import type { User, UserRole } from '@/lib/models';
+import { USER_ROLES } from '@/lib/models';
 
-interface User {
-  uid: string;
-  email: string | null;
-  name: string | null;
-  role?: 'student' | 'vendor' | 'admin' | 'super-admin';
-  fullName?: string;
-  phoneNumber?: string;
-  universityId?: string;
-  universityName?: string;
-  isEmailVerified?: boolean;
-  walletBalance?: number;
+// Extend the User interface for auth-specific properties
+interface AuthUser extends User {
+  uid: string; // Firebase Auth UID (maps to id in User model)
   fcmToken?: string;
-  createdAt?: string;
 }
 
 interface AuthContextType {
-  user: User | null;
+  user: AuthUser | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<UserCredential>;
   register: (email: string, password: string, name: string, role: 'student' | 'vendor' | 'admin' | 'super-admin') => Promise<void>;
@@ -47,7 +40,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Cache for user data to avoid repeated Firestore calls
@@ -58,10 +51,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (firebaseUser) {
         try {
           // Set basic user info immediately for faster UI response
-          const basicUser: User = {
+          const basicUser: AuthUser = {
             uid: firebaseUser.uid,
-            email: firebaseUser.email,
-            name: firebaseUser.displayName,
+            id: firebaseUser.uid, // Map Firebase uid to our model's id
+            email: firebaseUser.email || '',
+            fullName: firebaseUser.displayName || '',
+            universityId: '',
+            universityName: '',
+            role: USER_ROLES.STUDENT, // Default role
+            walletBalance: 0,
             isEmailVerified: firebaseUser.emailVerified,
           };
           setUser(basicUser);
@@ -70,9 +68,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Check cache first
           const cachedData = userDataCache.current.get(firebaseUser.uid);
           if (cachedData && Date.now() - cachedData.timestamp < 5 * 60 * 1000) { // 5 minutes cache
-            const fullUser: User = {
+            const fullUser: AuthUser = {
               ...basicUser,
-              ...cachedData.data
+              ...cachedData.data,
+              uid: firebaseUser.uid, // Ensure Firebase uid is preserved
+              id: firebaseUser.uid, // Ensure our model id matches
             };
             setUser(fullUser);
             setLoading(false); // Now we have complete data
@@ -90,14 +90,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               timestamp: Date.now()
             });
             
-            const fullUser: User = {
+            const fullUser: AuthUser = {
               ...basicUser,
-              name: firebaseUser.displayName || userData.fullName || null,
-              role: userData.role as 'student' | 'vendor' | 'admin' | 'super-admin' | undefined,
-              fullName: userData.fullName,
+              uid: firebaseUser.uid,
+              id: firebaseUser.uid,
+              role: userData.role as UserRole,
+              fullName: userData.fullName || firebaseUser.displayName || '',
               phoneNumber: userData.phoneNumber,
-              universityId: userData.universityId,
-              universityName: userData.universityName,
+              universityId: userData.universityId || '',
+              universityName: userData.universityName || '',
               isEmailVerified: userData.isEmailVerified || firebaseUser.emailVerified,
               walletBalance: userData.walletBalance || 0,
               fcmToken: userData.fcmToken,
@@ -114,8 +115,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Still set basic user info even if Firestore fails
           setUser({
             uid: firebaseUser.uid,
-            email: firebaseUser.email,
-            name: firebaseUser.displayName,
+            id: firebaseUser.uid,
+            email: firebaseUser.email || '',
+            fullName: firebaseUser.displayName || '',
+            universityId: '',
+            universityName: '',
+            role: USER_ROLES.STUDENT,
+            walletBalance: 0,
             isEmailVerified: firebaseUser.emailVerified,
           });
           setLoading(false);
@@ -255,8 +261,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           timestamp: Date.now()
         });
         
-        const refreshedUser: User = {
+        const refreshedUser: AuthUser = {
           ...user,
+          uid: user.uid, // Preserve Firebase UID
           role: userData.role as 'student' | 'vendor' | 'admin' | 'super-admin' | undefined,
           fullName: userData.fullName,
           phoneNumber: userData.phoneNumber,

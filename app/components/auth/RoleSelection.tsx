@@ -8,8 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/(la
 import { Alert, AlertDescription } from '@/(landing)/components/ui/alert';
 import { Loader2, UserCheck, Store, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-
-type UserRole = 'student' | 'vendor' | 'admin';
+import type { UserRole } from '@/lib/models';
 
 export function RoleSelection() {
   const { user } = useAuth();
@@ -84,7 +83,7 @@ export function RoleSelection() {
           </CardDescription>
           {user && (
             <div className={`text-sm text-gray-600 ${isRTL ? 'text-right' : 'text-left'}`}>
-              {t('welcomeBack') || 'Welcome back'}, {user.name}!
+              {t('welcomeBack') || 'Welcome back'}, {user.fullName}!
             </div>
           )}
         </CardHeader>

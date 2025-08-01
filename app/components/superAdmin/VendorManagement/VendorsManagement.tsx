@@ -24,7 +24,8 @@ import {
   Phone
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/(landing)/components/ui/dropdown-menu';
-import { SuperAdminService, VendorData } from '@/lib/superAdminService';
+import { SuperAdminService } from '@/lib/superAdminService';
+import type { VendorData } from '@/lib/models';
 import { useToast } from '@/hooks/use-toast';
 
 export function VendorsManagement() {

@@ -11,12 +11,11 @@ import { Alert, AlertDescription } from '@/(landing)/components/ui/alert';
 import { Loader2, Mail, Lock, User as UserIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import type { UserRole } from '@/lib/models';
 
 interface RegisterFormProps {
   onBackToLogin: () => void;
 }
-
-type UserRole = 'student' | 'vendor' | 'admin' | 'super-admin';
 
 export function RegisterForm({ onBackToLogin }: RegisterFormProps) {
   const { register, getUserDashboardUrl } = useAuth();

@@ -45,7 +45,7 @@ export function DashboardHeader() {
   };
 
   const getInitials = (name: string | null) => {
-    const displayName = user.fullName || user.name || name;
+    const displayName = user.fullName || name;
     if (!displayName) return 'U';
     return displayName
       .split(' ')
@@ -59,7 +59,7 @@ export function DashboardHeader() {
 
   return (
     <div className={`bg-white shadow-sm border-b border-gray-200 px-4 py-3 ${isRTL ? 'font-arabic' : 'font-inter'}`}>
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
+      <div className="max-w-full mx-auto flex items-center justify-between">
         {/* Logo/Title - positioned based on language direction */}
         <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-4' : 'space-x-4'}`}>
           <h1 className="text-xl font-bold text-gray-900">
@@ -73,7 +73,7 @@ export function DashboardHeader() {
           <div className={`hidden md:flex items-center ${isRTL ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
             <div className={`${isRTL ? 'text-right' : 'text-left'}`}>
               <p className="text-sm font-medium text-gray-900">
-                {user.fullName || user.name || user.email}
+                {user.fullName || user.email}
               </p>
               <div className="flex items-center gap-2">
                 <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getRoleBadgeColor(user.role || '')}`}>
@@ -100,7 +100,7 @@ export function DashboardHeader() {
               <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                 <Avatar className="h-8 w-8">
                   <AvatarFallback className="bg-gradient-to-r from-orange-500 to-red-600 text-white text-sm font-semibold">
-                    {getInitials(user.name)}
+                    {getInitials(user.fullName)}
                   </AvatarFallback>
                 </Avatar>
                 <ChevronDown className="h-3 w-3 absolute -bottom-1 -right-1 bg-white rounded-full" />
@@ -109,7 +109,7 @@ export function DashboardHeader() {
             <DropdownMenuContent className={`w-64 ${isRTL ? 'font-arabic' : 'font-inter'}`} align="end" forceMount>
               <div className={`flex items-center justify-start p-3 ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
                 <div className="flex flex-col space-y-1 leading-none">
-                  <p className="font-medium">{user.fullName || user.name || user.email}</p>
+                  <p className="font-medium">{user.fullName || user.email}</p>
                   <p className="w-[200px] truncate text-sm text-muted-foreground">
                     <EmailDisplay email={user.email || ''} />
                   </p>

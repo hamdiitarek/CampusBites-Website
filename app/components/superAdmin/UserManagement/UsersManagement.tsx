@@ -33,8 +33,9 @@ import {
   Edit,
   Ban
 } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/(landing)/components/ui/dropdown-menu';
-import { SuperAdminService, UserData } from '@/lib/superAdminService';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/(landing)/components/ui/dropdown-menu';
+import { SuperAdminService } from '@/lib/superAdminService';
+import type { UserData } from '@/lib/models';
 import { useToast } from '@/hooks/use-toast';
 
 export function UsersManagement() {
@@ -308,7 +309,7 @@ export function UsersManagement() {
               <SelectContent>
                 <SelectItem value="all">All Universities</SelectItem>
                 {universities.map((university) => (
-                  <SelectItem key={university.id} value={university.id}>
+                  <SelectItem key={university.id} value={university.name}>
                     {university.name}
                   </SelectItem>
                 ))}
@@ -344,7 +345,7 @@ export function UsersManagement() {
           {/* Users Table */}
           <div className="space-y-4">
             {currentUsers.map((user) => (
-              <div key={user.uid} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+              <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
                 <div className="flex items-center space-x-4">
                   <div className="flex-shrink-0">
                     {getRoleIcon(user.role)}
@@ -378,7 +379,7 @@ export function UsersManagement() {
                   <div className="text-right">
                     <p className="text-sm font-medium">${user.walletBalance || 0}</p>
                     <p className="text-xs text-gray-500">
-                      Joined: {new Date(user.createdAt).toLocaleDateString()}
+                      Joined: {user.createdAt ? new Date(user.createdAt.toDate()).toLocaleDateString() : 'N/A'}
                     </p>
                   </div>
 
@@ -389,21 +390,22 @@ export function UsersManagement() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleViewUserProfile(user.uid)}>
-                        <Eye className="h-4 w-4 mr-2" />
+                                            <DropdownMenuItem onClick={() => handleViewUserProfile(user.id)}>
+                        <Eye className="mr-2 h-4 w-4" />
                         View Profile
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleEditUser(user.uid)}>
-                        <Edit className="h-4 w-4 mr-2" />
+                      <DropdownMenuItem onClick={() => handleEditUser(user.id)}>
+                        <Edit className="mr-2 h-4 w-4" />
                         Edit User
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleUpdateUserRole(user.uid, 'admin')}>
-                        <Shield className="h-4 w-4 mr-2" />
-                        Change Role
+                      <DropdownMenuItem onClick={() => handleUpdateUserRole(user.id, 'admin')}>
+                        <Shield className="mr-2 h-4 w-4" />
+                        Make Admin
                       </DropdownMenuItem>
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem 
                         className="text-red-600"
-                        onClick={() => handleSuspendUser(user.uid)}
+                        onClick={() => handleSuspendUser(user.id)}
                       >
                         <Ban className="h-4 w-4 mr-2" />
                         Suspend User

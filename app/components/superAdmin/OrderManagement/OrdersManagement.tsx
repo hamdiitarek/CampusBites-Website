@@ -29,14 +29,14 @@ import {
   Activity
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/(landing)/components/ui/dropdown-menu';
-import { SuperAdminService, OrderData } from '@/lib/superAdminService';
+import { SuperAdminService, EnrichedOrderData } from '@/lib/superAdminService';
 import { useToast } from '@/hooks/use-toast';
 
 export function OrdersManagement() {
   const { isRTL } = useLanguage();
   const { toast } = useToast();
   
-  const [orders, setOrders] = useState<OrderData[]>([]);
+  const [orders, setOrders] = useState<EnrichedOrderData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
@@ -141,10 +141,7 @@ export function OrdersManagement() {
 
   const loadOrders = async () => {
     try {
-      console.log('Loading orders with filters:', { searchTerm, selectedStatus, selectedUniversity, dateRange });
-      
       let ordersData = await SuperAdminService.getEnrichedOrders(500);
-      console.log('Raw orders data length:', ordersData.length);
       
       // Calculate statistics from all orders (before filtering)
       const stats = calculateOrderStats(ordersData);
@@ -167,7 +164,6 @@ export function OrdersManagement() {
           (order.universityDetails?.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
           (order.userDetails?.universityName?.toLowerCase() || '').includes(searchTerm.toLowerCase())
         );
-        console.log('After search filter:', filteredOrders.length);
       }
       
       // Status filter
@@ -175,7 +171,6 @@ export function OrdersManagement() {
         filteredOrders = filteredOrders.filter(order =>
           order?.status === selectedStatus
         );
-        console.log('After status filter:', filteredOrders.length);
       }
       
       // University filter
@@ -185,7 +180,6 @@ export function OrdersManagement() {
           order?.userDetails?.universityId === selectedUniversity ||
           order?.universityDetails?.id === selectedUniversity
         );
-        console.log('After university filter:', filteredOrders.length);
       }
       
       // Date filter
@@ -216,11 +210,9 @@ export function OrdersManagement() {
             const orderDate = order?.createdAt?.toDate ? order.createdAt.toDate() : new Date(order?.createdAt || 0);
             return orderDate >= startDate;
           });
-          console.log('After date filter:', filteredOrders.length);
         }
       }
       
-      console.log('Final filtered orders length:', filteredOrders.length);
       setOrders(filteredOrders);
     } catch (error) {
       console.error('Error loading orders:', error);
@@ -232,7 +224,7 @@ export function OrdersManagement() {
     }
   };
 
-  const calculateOrderStats = (ordersData: OrderData[] = []) => {
+  const calculateOrderStats = (ordersData: EnrichedOrderData[] = []) => {
     if (!ordersData || !Array.isArray(ordersData)) {
       return {
         total: 0,

@@ -12,47 +12,21 @@ import {
   Timestamp 
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import type {
+  User,
+  UserData,
+  Vendor,
+  VendorData,
+  Order,
+  OrderData,
+  UniversityData,
+  USER_ROLES,
+  ORDER_STATUS,
+  COLLECTIONS
+} from './models';
 
-export interface UserData {
-  uid: string;
-  email: string;
-  fullName: string;
-  role: 'student' | 'vendor' | 'admin' | 'super-admin';
-  universityName: string;
-  universityId: string;
-  isEmailVerified: boolean;
-  walletBalance: number;
-  createdAt: string;
-  phoneNumber?: string;
-  profileImageUrl?: string;
-}
-
-export interface VendorData {
-  id: string;
-  name: string;
-  userId: string;
-  universityId: string;
-  universityName: string;
-  description: string;
-  imageUrl: string;
-  rating: number;
-  reviewCount: number;
-  categories: string[];
-  isOpen: boolean;
-  isApproved: boolean;
-  isSuspended: boolean;
-}
-
-export interface OrderData {
-  id: string;
-  userId: string;
-  vendorId: string;
-  items: any[];
-  total: number;
-  status: 'pending' | 'confirmed' | 'ready' | 'completed' | 'cancelled';
-  paymentMethod: string;
-  createdAt: Timestamp;
-  // Enriched data (optional)
+// Additional interfaces for enriched data
+export interface EnrichedOrderData extends OrderData {
   userDetails?: {
     id: string;
     displayName?: string;
@@ -74,15 +48,6 @@ export interface OrderData {
     name?: string;
     emailDomain?: string;
   };
-}
-
-export interface UniversityData {
-  id: string;
-  name: string;
-  emailDomain: string;
-  studentsCount?: number;
-  vendorsCount?: number;
-  adminsCount?: number;
 }
 
 export interface ComplaintData {
@@ -111,7 +76,7 @@ export class SuperAdminService {
       
       // Apply filters
       if (universityFilter && universityFilter !== 'all') {
-        constraints.push(where('universityId', '==', universityFilter));
+        constraints.push(where('universityName', '==', universityFilter));
       }
       
       if (roleFilter && roleFilter !== 'all') {
@@ -127,7 +92,7 @@ export class SuperAdminService {
       
       const snapshot = await getDocs(q);
       let users = snapshot.docs.map(doc => ({
-        uid: doc.id,
+        id: doc.id,
         ...doc.data()
       })) as UserData[];
       
@@ -176,25 +141,26 @@ export class SuperAdminService {
       // Get user counts for each university
       const universitiesWithCounts = await Promise.all(
         universities.map(async (university) => {
-          // Count students
+          // Count students by universityName and role
           const studentsQuery = query(
             collection(db, 'users'),
-            where('universityId', '==', university.id),
+            where('universityName', '==', university.name),
             where('role', '==', 'student')
           );
           const studentsSnapshot = await getDocs(studentsQuery);
           
-          // Count vendors
+          // Count vendors by universityName
           const vendorsQuery = query(
-            collection(db, 'vendors'),
-            where('universityId', '==', university.id)
+            collection(db, 'users'),
+            where('universityName', '==', university.name),
+            where('role', '==', 'vendor')
           );
           const vendorsSnapshot = await getDocs(vendorsQuery);
           
-          // Count admins
+          // Count admins by universityName and role
           const adminsQuery = query(
             collection(db, 'users'),
-            where('universityId', '==', university.id),
+            where('universityName', '==', university.name),
             where('role', '==', 'admin')
           );
           const adminsSnapshot = await getDocs(adminsQuery);
