@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { formatDate as utilFormatDate } from '@/lib/utils';
+import { safeTimestampToDate, formatTimestamp } from '@/lib/models';
 import { SuperAdminLayout } from './superAdmin/SuperAdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/(landing)/components/ui/card';
 import { Button } from '@/(landing)/components/ui/button';
@@ -224,27 +226,15 @@ export function SuperAdminDashboard() {
     }
   };
 
-  // Helper functions for UI
-  const formatDate = (date: any): string => {
-    if (!date) return 'N/A';
-    
+  // Use the shared utility function for date formatting
+  // Helper function to safely format dates
+  const formatDate = (timestamp: any): string => {
     try {
-      // Handle Firestore Timestamp
-      if (date.toDate && typeof date.toDate === 'function') {
-        return date.toDate().toLocaleDateString();
-      }
-      // Handle string dates
-      if (typeof date === 'string') {
-        return new Date(date).toLocaleDateString();
-      }
-      // Handle Date objects
-      if (date instanceof Date) {
-        return date.toLocaleDateString();
-      }
-      return 'N/A';
+      const date = safeTimestampToDate(timestamp);
+      return utilFormatDate(date);
     } catch (error) {
       console.warn('Error formatting date:', error);
-      return 'N/A';
+      return 'Invalid Date';
     }
   };
 

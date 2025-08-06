@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { formatDate } from '@/lib/utils';
 import { Button } from '@/(landing)/components/ui/button';
 import { Input } from '@/(landing)/components/ui/input';
 import { Label } from '@/(landing)/components/ui/label';
@@ -279,8 +280,8 @@ export function OneTimeCodeManagement({ className }: OneTimeCodeManagementProps)
         code.type,
         code.universityName,
         getCodeStatus(code),
-        code.createdAt.toDate().toLocaleDateString(),
-        code.expiresAt.toDate().toLocaleDateString(),
+        formatDate(code.createdAt),
+        formatDate(code.expiresAt),
         `${code.usageCount}/${code.maxUses}`,
         code.metadata?.createdByName || 'Unknown',
         code.metadata?.notes || ''
@@ -620,8 +621,8 @@ export function OneTimeCodeManagement({ className }: OneTimeCodeManagementProps)
                         <TableCell>{getTypeBadge(code.type)}</TableCell>
                         <TableCell>{code.universityName}</TableCell>
                         <TableCell>{getStatusBadge(status)}</TableCell>
-                        <TableCell>{code.createdAt.toDate().toLocaleDateString()}</TableCell>
-                        <TableCell>{code.expiresAt.toDate().toLocaleDateString()}</TableCell>
+                        <TableCell>{formatDate(code.createdAt)}</TableCell>
+                        <TableCell>{formatDate(code.expiresAt)}</TableCell>
                         <TableCell>{code.usageCount}/{code.maxUses}</TableCell>
                         <TableCell>{code.metadata?.createdByName || 'Unknown'}</TableCell>
                         <TableCell>

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { formatDate } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/(landing)/components/ui/card';
 import { Button } from '@/(landing)/components/ui/button';
 import { Input } from '@/(landing)/components/ui/input';
@@ -379,7 +380,7 @@ export function UsersManagement() {
                   <div className="text-right">
                     <p className="text-sm font-medium">${user.walletBalance || 0}</p>
                     <p className="text-xs text-gray-500">
-                      Joined: {user.createdAt ? new Date(user.createdAt.toDate()).toLocaleDateString() : 'N/A'}
+                      Joined: {formatDate(user.createdAt)}
                     </p>
                   </div>
 

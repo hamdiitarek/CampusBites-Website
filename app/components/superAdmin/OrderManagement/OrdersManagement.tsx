@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/(landing)/components/ui/dropdown-menu';
 import { SuperAdminService, EnrichedOrderData } from '@/lib/superAdminService';
+import { safeTimestampToDate } from '@/lib/models';
 import { useToast } from '@/hooks/use-toast';
 
 export function OrdersManagement() {
@@ -207,7 +208,7 @@ export function OrdersManagement() {
         
         if (dateRange !== 'all') {
           filteredOrders = filteredOrders.filter(order => {
-            const orderDate = order?.createdAt?.toDate ? order.createdAt.toDate() : new Date(order?.createdAt || 0);
+            const orderDate = safeTimestampToDate(order?.createdAt);
             return orderDate >= startDate;
           });
         }

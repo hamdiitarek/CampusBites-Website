@@ -13,6 +13,40 @@ export * from './models/database';
 import type { User, Order, Vendor, OrderItem, Notification } from './models/index';
 import { USER_ROLES, ORDER_STATUS, UNIVERSITY_DOMAINS } from './models/constants';
 import type { UserRole, OrderStatus } from './models/constants';
+import type { Timestamp } from 'firebase/firestore';
+
+// ========================================
+// Utility Functions
+// ========================================
+
+/**
+ * Safely converts Firestore Timestamp to Date
+ * Handles both Firestore Timestamp objects and regular dates/strings
+ */
+export const safeTimestampToDate = (timestamp: any): Date => {
+  if (!timestamp) return new Date();
+  
+  // If it's already a Date object
+  if (timestamp instanceof Date) return timestamp;
+  
+  // If it's a Firestore Timestamp with toDate method
+  if (timestamp.toDate && typeof timestamp.toDate === 'function') {
+    try {
+      return timestamp.toDate();
+    } catch (error) {
+      console.warn('Error converting timestamp to date:', error);
+      return new Date();
+    }
+  }
+  
+  // If it's a string or number, try to create a Date
+  try {
+    return new Date(timestamp);
+  } catch (error) {
+    console.warn('Error parsing timestamp:', error);
+    return new Date();
+  }
+};
 
 // ========================================
 // Type Guards
@@ -176,9 +210,26 @@ export const getUserRoleDisplayName = (role: UserRole): string => {
 /**
  * Check if notification has expired
  */
-export const isNotificationExpired = (notification: Notification): boolean => {
+export const isExpired = (notification: any): boolean => {
   if (!notification.expiresAt) return false;
-  return notification.expiresAt.toDate() < new Date();
+  try {
+    const expiryDate = safeTimestampToDate(notification.expiresAt);
+    return expiryDate < new Date();
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Format timestamp for detailed display (with time)
+ */
+export const formatDetailedTimestamp = (timestamp: any): string => {
+  try {
+    const date = safeTimestampToDate(timestamp);
+    return date.toLocaleString();
+  } catch {
+    return 'Invalid Date';
+  }
 };
 
 /**
@@ -187,32 +238,42 @@ export const isNotificationExpired = (notification: Notification): boolean => {
 export const formatTimestamp = (timestamp: any): string => {
   if (!timestamp) return 'N/A';
   
-  // Handle Firestore Timestamp
-  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-  
-  return new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  }).format(date);
+  try {
+    // Use safe timestamp conversion
+    const date = safeTimestampToDate(timestamp);
+    
+    return new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
+  } catch (error) {
+    console.warn('Error formatting timestamp:', error);
+    return 'N/A';
+  }
 };
 
 /**
- * Get relative time (e.g., "2 hours ago")
+ * Get relative time string (e.g., "2 hours ago")
  */
 export const getRelativeTime = (timestamp: any): string => {
   if (!timestamp) return 'N/A';
   
-  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-  const now = new Date();
-  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  try {
+    const date = safeTimestampToDate(timestamp);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    
+    if (diffInSeconds < 60) return 'Just now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+    if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)} days ago`;
   
-  if (diffInSeconds < 60) return 'Just now';
-  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
-  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
-  if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)} days ago`;
-  
-  return formatTimestamp(timestamp);
+    return formatTimestamp(timestamp);
+  } catch (error) {
+    console.warn('Error calculating relative time:', error);
+    return 'N/A';
+  }
 };

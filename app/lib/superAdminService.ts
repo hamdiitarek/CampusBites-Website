@@ -97,10 +97,18 @@ export class SuperAdminService {
         : query(collection(db, 'users'), orderBy('createdAt', 'desc'));
       
       const snapshot = await getDocs(q);
-      let users = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as UserData[];
+      let users = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          // Safely handle createdAt timestamp
+          createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : 
+                     data.createdAt ? new Date(data.createdAt) : new Date(),
+          updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : 
+                     data.updatedAt ? new Date(data.updatedAt) : undefined,
+        };
+      }) as UserData[];
       
       // Apply search filter in memory (since Firestore doesn't support full-text search)
       if (searchTerm) {
@@ -110,24 +118,30 @@ export class SuperAdminService {
           user.email?.toLowerCase().includes(searchLower)
         );
       }
-      
+
       return users;
     } catch (error) {
       console.error('Error fetching users:', error);
       return [];
     }
-  }
-
-  // Get all vendors
+  }  // Get all vendors
   static async getAllVendors(): Promise<VendorData[]> {
     try {
       const q = query(collection(db, 'vendors'), orderBy('name'));
       const snapshot = await getDocs(q);
       
-      return snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as VendorData[];
+      return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          // Safely handle timestamp fields if they exist
+          createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : 
+                     data.createdAt ? new Date(data.createdAt) : undefined,
+          updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : 
+                     data.updatedAt ? new Date(data.updatedAt) : undefined,
+        };
+      }) as VendorData[];
     } catch (error) {
       console.error('Error fetching vendors:', error);
       return [];
@@ -197,10 +211,19 @@ export class SuperAdminService {
       );
       const snapshot = await getDocs(q);
       
-      return snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as OrderData[];
+      return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          // Safely handle createdAt timestamp
+          createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : 
+                     data.createdAt ? new Date(data.createdAt) : new Date(),
+          // Handle other timestamp fields if they exist
+          updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : 
+                     data.updatedAt ? new Date(data.updatedAt) : undefined,
+        };
+      }) as OrderData[];
     } catch (error) {
       console.error('Error fetching orders:', error);
       return [];
@@ -213,10 +236,18 @@ export class SuperAdminService {
       const q = query(collection(db, 'complaints'), orderBy('createdAt', 'desc'));
       const snapshot = await getDocs(q);
       
-      return snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as ComplaintData[];
+      return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          // Safely handle timestamp fields
+          createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : 
+                     data.createdAt ? new Date(data.createdAt) : new Date(),
+          resolvedAt: data.resolvedAt?.toDate ? data.resolvedAt.toDate() : 
+                      data.resolvedAt ? new Date(data.resolvedAt) : undefined,
+        };
+      }) as ComplaintData[];
     } catch (error) {
       console.error('Error fetching complaints:', error);
       return [];

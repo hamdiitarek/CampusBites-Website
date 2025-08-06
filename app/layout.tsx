@@ -113,21 +113,33 @@ export default function RootLayout({
             __html: `
               (function() {
                 function setInitialDirection() {
-                  var path = window.location.pathname;
-                  var isArabic = path.startsWith('/ar');
-                  var html = document.documentElement;
-                  var body = document.body;
-                  
-                  if (isArabic) {
-                    html.dir = 'rtl';
-                    html.lang = 'ar';
-                    body.className = 'font-arabic';
-                    body.style.direction = 'rtl';
-                  } else {
-                    html.dir = 'ltr';
-                    html.lang = 'en';
-                    body.className = 'font-inter';
-                    body.style.direction = 'ltr';
+                  try {
+                    var path = window.location.pathname;
+                    var isArabic = path.startsWith('/ar');
+                    var html = document.documentElement;
+                    var body = document.body;
+                    
+                    // Ensure elements exist before modifying them
+                    if (html) {
+                      html.dir = isArabic ? 'rtl' : 'ltr';
+                      html.lang = isArabic ? 'ar' : 'en';
+                      
+                      // Remove existing direction classes
+                      html.className = html.className.replace(/\\b(dir-ltr|dir-rtl)\\b/g, '');
+                      html.classList.add(isArabic ? 'dir-rtl' : 'dir-ltr');
+                    }
+                    
+                    if (body) {
+                      if (isArabic) {
+                        body.className = body.className.replace(/\\bfont-inter\\b/g, '') + ' font-arabic';
+                        body.style.direction = 'rtl';
+                      } else {
+                        body.className = body.className.replace(/\\bfont-arabic\\b/g, '') + ' font-inter';
+                        body.style.direction = 'ltr';
+                      }
+                    }
+                  } catch (error) {
+                    console.warn('Error setting initial direction:', error);
                   }
                 }
                 
