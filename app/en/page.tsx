@@ -43,7 +43,7 @@ export default function EnglishHome() {
           <Hero />
           <Features />
           <RoleSection />
-          <Testimonials />
+         {/* <Testimonials /> */}
           <CTA />
         </main>
         <Footer />
