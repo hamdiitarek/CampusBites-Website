@@ -29,6 +29,30 @@
     font-size: 16px;
   }
 
+  /* Remove focus outlines globally while maintaining accessibility */
+  *, *::before, *::after {
+    outline: none !important;
+  }
+  
+  /* Remove focus rings from buttons, inputs, and interactive elements */
+  button:focus,
+  input:focus,
+  select:focus,
+  textarea:focus,
+  [role="button"]:focus,
+  [tabindex]:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: inherit !important;
+  }
+  
+  /* Remove focus styles from Radix UI components */
+  [data-radix-collection-item]:focus,
+  [data-radix-collection-item]:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
   /* Arabic font styling for better readability */
   [dir="rtl"] body,
   .font-arabic {
