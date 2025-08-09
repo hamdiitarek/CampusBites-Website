@@ -59,6 +59,7 @@ interface AdvancedAnalyticsChartsProps {
   dailyData: DailyData[];
   hourlyData: HourlyData[];
   categoryData: CategoryData[];
+  orders?: any[]; // Add orders prop for correct revenue calculation
   className?: string;
 }
 
@@ -68,6 +69,7 @@ export function AdvancedAnalyticsCharts({
   dailyData, 
   hourlyData, 
   categoryData,
+  orders = [],
   className = "" 
 }: AdvancedAnalyticsChartsProps) {
   
@@ -104,51 +106,55 @@ export function AdvancedAnalyticsCharts({
     return complete;
   }, [hourlyData]);
 
-  // Calculate totals
+  // Calculate totals for correct percentage calculation (same logic as dashboard)
   const totalRevenue = dailyData.reduce((sum, item) => sum + item.revenue, 0);
   const totalOrders = dailyData.reduce((sum, item) => sum + item.orders, 0);
   const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
+  // Calculate category data from orders with proper category information
+  const correctedCategoryData = React.useMemo(() => {
+    // Use service-calculated data if available, otherwise calculate from orders with categories
+    if (categoryData && categoryData.length > 0) {
+      const categoryTotalRevenue = categoryData.reduce((sum, cat) => sum + cat.revenue, 0);
+      return categoryData.map(cat => ({
+        ...cat,
+        // Use revenue-based percentage for accuracy
+        percentage: categoryTotalRevenue > 0 ? (cat.revenue / categoryTotalRevenue) * 100 : 0
+      }));
+    }
+
+    // Fallback: calculate from orders if service data is not available
+    const categoryMap = new Map<string, { orders: number; revenue: number }>();
+    
+    orders.forEach(order => {
+      if (order.items) {
+        order.items.forEach(item => {
+          const category = item.category || 'Other';
+          const itemRevenue = (item.price || 0) * (item.quantity || 0);
+          
+          if (!categoryMap.has(category)) {
+            categoryMap.set(category, { orders: 0, revenue: 0 });
+          }
+          
+          const current = categoryMap.get(category)!;
+          current.orders += item.quantity || 0;
+          current.revenue += itemRevenue;
+        });
+      }
+    });
+
+    const totalRevenue = Array.from(categoryMap.values()).reduce((sum, cat) => sum + cat.revenue, 0);
+    
+    return Array.from(categoryMap.entries()).map(([category, data]) => ({
+      category,
+      orders: data.orders,
+      revenue: data.revenue,
+      percentage: totalRevenue > 0 ? (data.revenue / totalRevenue) * 100 : 0
+    }));
+  }, [categoryData, orders]);
+
   return (
     <div className={`space-y-6 ${className}`}>
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total Revenue</p>
-                <p className="text-2xl font-bold text-green-600">{formatCurrency(totalRevenue)}</p>
-              </div>
-              <DollarSign className="h-8 w-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total Orders</p>
-                <p className="text-2xl font-bold text-blue-600">{totalOrders.toLocaleString()}</p>
-              </div>
-              <Activity className="h-8 w-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Avg Order Value</p>
-                <p className="text-2xl font-bold text-purple-600">{formatCurrency(avgOrderValue)}</p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-purple-600" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Revenue and Orders Trend */}
       <Card>
@@ -228,7 +234,7 @@ export function AdvancedAnalyticsCharts({
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={categoryData}
+                  data={correctedCategoryData}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
@@ -237,7 +243,7 @@ export function AdvancedAnalyticsCharts({
                   fill="#8884d8"
                   dataKey="orders"
                 >
-                  {categoryData.map((entry, index) => (
+                  {correctedCategoryData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
@@ -296,7 +302,7 @@ export function AdvancedAnalyticsCharts({
                 </tr>
               </thead>
               <tbody>
-                {categoryData.map((category, index) => (
+                {correctedCategoryData.map((category, index) => (
                   <tr key={category.category} className="border-b hover:bg-gray-50">
                     <td className="p-3 flex items-center">
                       <div 

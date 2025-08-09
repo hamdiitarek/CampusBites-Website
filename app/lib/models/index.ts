@@ -32,6 +32,7 @@ export interface OrderItem {
   quantity: number;            // Quantity ordered
   note?: string;               // Special instructions
   customizations?: CustomizationOption; // Selected customizations
+  category?: string;           // Food category (for analytics)
 }
 
 // ========================================

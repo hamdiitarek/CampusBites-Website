@@ -26,10 +26,11 @@ import { FoodTrendData } from '../../../lib/universityAdminService';
 
 interface FoodTrendsAnalysisProps {
   trends: FoodTrendData[];
+  orders?: any[]; // Add orders prop for proper revenue calculation
   className?: string;
 }
 
-export function FoodTrendsAnalysis({ trends, className = "" }: FoodTrendsAnalysisProps) {
+export function FoodTrendsAnalysis({ trends, orders = [], className = "" }: FoodTrendsAnalysisProps) {
   const [sortBy, setSortBy] = useState<'popularity' | 'revenue' | 'trend'>('popularity');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
@@ -93,11 +94,17 @@ export function FoodTrendsAnalysis({ trends, className = "" }: FoodTrendsAnalysi
   // Get unique categories for filter
   const categories = Array.from(new Set(trends.map(item => item.category)));
 
-  // Calculate summary stats
+  // Calculate summary stats using the same logic as UniversityAdminDashboard
   const totalItems = trends.length;
   const trendingUp = trends.filter(item => item.trend === 'up').length;
   const trendingDown = trends.filter(item => item.trend === 'down').length;
-  const totalRevenue = trends.reduce((sum, item) => sum + item.revenue, 0);
+  
+  // Calculate total revenue from completed orders (same as dashboard logic)
+  const totalRevenue = orders.length > 0 
+    ? orders
+        .filter(order => order.status === 'completed')
+        .reduce((sum, order) => sum + order.total, 0)
+    : trends.reduce((sum, item) => sum + item.revenue, 0); // Fallback to trends data if no orders
 
   return (
     <div className={`space-y-4 md:space-y-6 w-full ${className}`}>

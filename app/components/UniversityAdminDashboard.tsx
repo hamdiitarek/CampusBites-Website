@@ -67,7 +67,7 @@ export function UniversityAdminDashboard() {
   // Initialize filters with default values instead of null
   const [filters, setFilters] = useState<FilterConfig>({
     dateRange: { from: null, to: null },
-    timePeriod: '30d',
+    timePeriod: '90d', // Changed from 30d to 90d to show all demo data by default
     categories: [],
     vendors: [],
     orderStatus: [],
@@ -86,18 +86,112 @@ export function UniversityAdminDashboard() {
   // Get university name from user context
   const universityName = user?.universityName || 'Egypt University of Informatics';
 
+  // State for vendor analytics
+  const [vendorAnalytics, setVendorAnalytics] = useState<{[vendorId: string]: any}>({});
+
+  // Utility function to handle different timestamp formats
+  const toDate = (timestamp: any): Date => {
+    if (!timestamp) return new Date();
+    try {
+      return timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    } catch (error) {
+      return new Date();
+    }
+  };
+
+  // Real-time calculation functions using migrated timestamp fields
+  const calculateAverageResponseTime = (orders: OrderData[]) => {
+    // Use real confirmedAt timestamps from migrated orders
+    const ordersWithConfirmation = orders.filter(order => 
+      order.confirmedAt && order.createdAt && order.status !== 'cancelled'
+    );
+    
+    if (ordersWithConfirmation.length === 0) {
+      // Fallback: estimate for orders without confirmed timestamps
+      const completedOrders = orders.filter(order => 
+        order.status === 'completed' && order.createdAt
+      );
+      
+      if (completedOrders.length === 0) return 0;
+      
+      const now = new Date();
+      const totalEstimatedTime = completedOrders.reduce((sum, order) => {
+        const created = toDate(order.createdAt);
+        const timeSinceCreated = (now.getTime() - created.getTime()) / (1000 * 60);
+        const estimatedResponseTime = Math.min(timeSinceCreated, 25);
+        return sum + estimatedResponseTime;
+      }, 0);
+      
+      return Math.round(totalEstimatedTime / completedOrders.length);
+    }
+    
+    // Use real confirmation timestamps
+    const totalResponseTime = ordersWithConfirmation.reduce((sum, order) => {
+      const created = toDate(order.createdAt);
+      const confirmed = toDate(order.confirmedAt);
+      const responseTime = (confirmed.getTime() - created.getTime()) / (1000 * 60); // in minutes
+      return sum + responseTime;
+    }, 0);
+    
+    return Math.round(totalResponseTime / ordersWithConfirmation.length);
+  };
+
+  const calculateCompletionRate = (orders: OrderData[]) => {
+    const totalOrders = orders.filter(order => order.status !== 'cancelled').length;
+    if (totalOrders === 0) return 0;
+    
+    const completedOrders = orders.filter(order => order.status === 'completed').length;
+    return (completedOrders / totalOrders) * 100;
+  };
+
+  const calculateVendorMetrics = (vendorId: string, orders: OrderData[]) => {
+    const vendorOrders = orders.filter(order => order.vendorId === vendorId);
+    
+    const totalRevenue = vendorOrders
+      .filter(order => order.status === 'completed')
+      .reduce((sum, order) => sum + order.total, 0);
+    
+    return {
+      totalOrders: vendorOrders.length,
+      completionRate: calculateCompletionRate(vendorOrders),
+      averageResponseTime: calculateAverageResponseTime(vendorOrders),
+      totalRevenue
+    };
+  };
+
+  const displayVendorMetrics = (vendor: VendorPerformanceData) => {
+    const analytics = vendorAnalytics[vendor.id];
+    
+    return {
+      completionRate: analytics?.completionRate ?? vendor.completionRate,
+      responseTime: analytics?.averageResponseTime ?? vendor.responseTime,
+      totalRevenue: analytics?.totalRevenue ?? vendor.totalRevenue,
+      totalOrders: analytics?.totalOrders ?? vendor.totalOrders
+    };
+  };
+
     // Load initial data on component mount
   useEffect(() => {
     const loadInitialData = async () => {
       setLoading(true);
       try {
+        console.log('🚀 Loading dashboard data for university:', universityName);
+        console.log('🔄 Dashboard useEffect triggered - loading initial data');
+        
         const [analyticsData, vendorsData, ordersData, studentsData, studentListData] = await Promise.all([
-          UniversityAdminService.getUniversityAnalytics(universityName, '30d'), // Default to 30d
+          UniversityAdminService.getUniversityAnalytics(universityName, '90d'), // Changed from 30d to 90d to capture all demo data
           UniversityAdminService.getVendorPerformance(universityName),
-          UniversityAdminService.getRecentOrders(universityName, 50), // Load more orders for better filtering
+          UniversityAdminService.getRecentOrders(universityName, 1000), // Load much more orders to match all demo data (783 orders)
           UniversityAdminService.getStudentEngagement(universityName),
           UniversityAdminService.getUniversityStudents(universityName, 100) // Load more students for better filtering
         ]);
+
+        console.log('📊 Dashboard loaded data:', {
+          analytics: analyticsData,
+          ordersCount: ordersData.length,
+          vendorsCount: vendorsData.length,
+          studentsCount: studentsData
+        });
 
         setAnalytics(analyticsData);
         setVendorPerformance(vendorsData);
@@ -126,7 +220,7 @@ export function UniversityAdminDashboard() {
     const loadAnalyticsData = async () => {
       try {
         // Use custom date range if available, otherwise fall back to time period
-        let timePeriod = filters?.timePeriod || '30d';
+        let timePeriod = filters?.timePeriod || '90d'; // Changed default from 30d to 90d
         let customDateRange: { from: Date; to: Date } | undefined;
         
         // If we have a custom date range, use it
@@ -201,7 +295,7 @@ export function UniversityAdminDashboard() {
         
         const ordersData = await UniversityAdminService.getRecentOrders(
           universityName, 
-          50, 
+          1000, // Load much more orders to match all demo data
           customDateRange
         );
         setRecentOrders(ordersData);
@@ -221,11 +315,68 @@ export function UniversityAdminDashboard() {
     }
   }, [universityName, filters?.dateRange, loading, toast]);
 
+  // Load real-time vendor analytics when vendor data or orders change
+  useEffect(() => {
+    const loadVendorAnalytics = async () => {
+      if (vendorPerformance.length > 0) {
+        try {
+          const analyticsMap: {[vendorId: string]: any} = {};
+          
+          // Option 1: Use backend service for real-time data (when orders are available)
+          if (recentOrders.length > 0) {
+            // Calculate from local order data for real-time updates
+            vendorPerformance.forEach(vendor => {
+              const metrics = calculateVendorMetrics(vendor.id, recentOrders);
+              analyticsMap[vendor.id] = metrics;
+            });
+          } else {
+            // Option 2: Fetch from backend when local data is not available
+            const analyticsPromises = vendorPerformance.slice(0, 5).map(async (vendor) => {
+              try {
+                const analytics = await UniversityAdminService.getVendorAnalytics(
+                  universityName, 
+                  vendor.id,
+                  filters.dateRange && filters.dateRange.from && filters.dateRange.to 
+                    ? { from: filters.dateRange.from, to: filters.dateRange.to }
+                    : undefined
+                );
+                return { vendorId: vendor.id, analytics };
+              } catch (error) {
+                console.error(`Error loading analytics for vendor ${vendor.id}:`, error);
+                // Fallback to original vendor data
+                return { 
+                  vendorId: vendor.id, 
+                  analytics: {
+                    completionRate: vendor.completionRate,
+                    averageResponseTime: vendor.responseTime,
+                    totalRevenue: vendor.totalRevenue,
+                    totalOrders: vendor.totalOrders
+                  }
+                };
+              }
+            });
+            
+            const results = await Promise.all(analyticsPromises);
+            results.forEach(({ vendorId, analytics }) => {
+              analyticsMap[vendorId] = analytics;
+            });
+          }
+          
+          setVendorAnalytics(analyticsMap);
+        } catch (error) {
+          console.error('Error loading vendor analytics:', error);
+        }
+      }
+    };
+
+    loadVendorAnalytics();
+  }, [vendorPerformance, recentOrders, filters.dateRange, universityName]);
+
   // Refresh function - preserves current filters
   const refresh = async () => {
     setLoading(true);
     try {
-      const timePeriod = filters?.timePeriod || '30d';
+      const timePeriod = filters?.timePeriod || '90d'; // Changed default from 30d to 90d
       let customDateRange: { from: Date; to: Date } | undefined;
       
       // Use custom date range if available
@@ -252,7 +403,7 @@ export function UniversityAdminDashboard() {
       const [analyticsData, vendorsData, ordersData, studentsData, studentListData] = await Promise.all([
         UniversityAdminService.getUniversityAnalytics(universityName, timePeriod, customDateRange),
         UniversityAdminService.getVendorPerformance(universityName),
-        UniversityAdminService.getRecentOrders(universityName, 50, customDateRange), // Pass custom date range for orders too
+        UniversityAdminService.getRecentOrders(universityName, 1000, customDateRange), // Load much more orders to capture all demo data
         UniversityAdminService.getStudentEngagement(universityName),
         UniversityAdminService.getUniversityStudents(universityName, 100) // Load more students for better filtering
       ]);
@@ -282,6 +433,13 @@ export function UniversityAdminDashboard() {
   // Derived state for UI
   const [students, setStudents] = useState([]);
   const foodTrends = analytics?.topSellingItems || [];
+
+  // Trend calculation functions
+  
+  const getTrendDirection = (trendValue: number): 'up' | 'down' | 'stable' => {
+    if (Math.abs(trendValue) < 1) return 'stable';
+    return trendValue > 0 ? 'up' : 'down';
+  };
 
   // Handle filter changes
   const handleFiltersChange = (newFilters: FilterConfig) => {
@@ -329,7 +487,7 @@ export function UniversityAdminDashboard() {
             ),
             UniversityAdminService.getRecentOrders(
               universityName, 
-              50, 
+              1000, // Load much more orders to capture all demo data
               customDateRange
             )
           ]);
@@ -361,7 +519,20 @@ export function UniversityAdminDashboard() {
       
       // Apply status filter
       if (filters.orderStatus && filters.orderStatus.length > 0) {
-        if (!filters.orderStatus.includes(vendor.status)) return false;
+        // Map vendor status to order status for filtering
+        const vendorStatusMapping: { [key: string]: string[] } = {
+          'active': ['completed', 'ready', 'confirmed'],
+          'pending': ['pending'],
+          'approved': ['completed', 'ready', 'confirmed'],
+          'suspended': ['cancelled']
+        };
+        
+        const relevantStatuses = vendorStatusMapping[vendor.status] || [vendor.status];
+        const hasMatchingStatus = filters.orderStatus.some(status => 
+          relevantStatuses.includes(status)
+        );
+        
+        if (!hasMatchingStatus) return false;
       }
       
       return true;
@@ -371,7 +542,10 @@ export function UniversityAdminDashboard() {
   const getFilteredOrders = () => {
     if (recentOrders.length === 0) return recentOrders;
     
-    return recentOrders.filter(order => {
+    const filtered = recentOrders.filter(order => {
+      // Orders are already filtered by university through the service (vendor-based filtering)
+      // No need for additional university filtering since orders don't have universityName field
+      
       // Apply date range filter
       if (filters.dateRange?.from || filters.dateRange?.to) {
         const orderDate = toDate(order.createdAt);
@@ -393,12 +567,88 @@ export function UniversityAdminDashboard() {
       
       return true;
     });
+    
+    return filtered;
   };
+
+  const calculateTrends = () => {
+    if (!recentOrders.length) return {
+      responseTime: { value: 0, trend: 0 },
+      completionRate: { value: 0, trend: 0 },
+      revenue: { value: 0, trend: 0 },
+      orders: { value: 0, trend: 0 }
+    };
+
+    const currentOrders = getFilteredOrders();
+    const currentTime = new Date();
+    const weekAgo = new Date(currentTime.getTime() - 7 * 24 * 60 * 60 * 1000);
+    
+    // Split orders into current week and previous week
+    const currentWeekOrders = currentOrders.filter(order => {
+      const orderDate = toDate(order.createdAt);
+      return orderDate >= weekAgo;
+    });
+    
+    const previousWeekOrders = currentOrders.filter(order => {
+      const orderDate = toDate(order.createdAt);
+      const twoWeeksAgo = new Date(weekAgo.getTime() - 7 * 24 * 60 * 60 * 1000);
+      return orderDate >= twoWeeksAgo && orderDate < weekAgo;
+    });
+    
+    // Calculate current vs previous metrics
+    const currentResponseTime = calculateAverageResponseTime(currentWeekOrders);
+    const previousResponseTime = calculateAverageResponseTime(previousWeekOrders);
+    
+    const currentCompletionRate = calculateCompletionRate(currentWeekOrders);
+    const previousCompletionRate = calculateCompletionRate(previousWeekOrders);
+    
+    const currentRevenue = currentWeekOrders
+      .filter(o => o.status === 'completed')
+      .reduce((sum, order) => sum + order.total, 0);
+    
+    const previousRevenue = previousWeekOrders
+      .filter(o => o.status === 'completed')
+      .reduce((sum, order) => sum + order.total, 0);
+    
+    const currentCompletedCount = currentWeekOrders.filter(o => o.status === 'completed').length;
+    const previousCompletedCount = previousWeekOrders.filter(o => o.status === 'completed').length;
+    
+    // Calculate percentage changes
+    const responseTimeTrend = previousResponseTime > 0 
+      ? ((currentResponseTime - previousResponseTime) / previousResponseTime) * 100 
+      : 0;
+      
+    const completionRateTrend = previousCompletionRate > 0 
+      ? ((currentCompletionRate - previousCompletionRate) / previousCompletionRate) * 100 
+      : 0;
+      
+    const revenueTrend = previousRevenue > 0 
+      ? ((currentRevenue - previousRevenue) / previousRevenue) * 100 
+      : 0;
+      
+    const ordersTrend = previousCompletedCount > 0 
+      ? ((currentCompletedCount - previousCompletedCount) / previousCompletedCount) * 100 
+      : 0;
+    
+    return {
+      responseTime: { value: currentResponseTime, trend: responseTimeTrend },
+      completionRate: { value: currentCompletionRate, trend: completionRateTrend },
+      revenue: { value: currentRevenue, trend: revenueTrend },
+      orders: { value: currentCompletedCount, trend: ordersTrend }
+    };
+  };
+
+  const trends = calculateTrends();
 
   const getFilteredStudents = () => {
     if (students.length === 0) return students;
     
     return students.filter(student => {
+      // First: Filter by university name (extra safety check)
+      if (student.universityName && student.universityName !== universityName) {
+        return false;
+      }
+      
       // Apply date range filter for registration date
       if (filters.dateRange?.from || filters.dateRange?.to) {
         const studentDate = toDate(student.createdAt);
@@ -571,15 +821,6 @@ export function UniversityAdminDashboard() {
     }
   };
 
-  const toDate = (timestamp: any): Date => {
-    if (!timestamp) return new Date();
-    try {
-      return timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    } catch (error) {
-      return new Date();
-    }
-  };
-
   if (loading) {
     return (
       <motion.div 
@@ -682,80 +923,7 @@ export function UniversityAdminDashboard() {
       </motion.div>
       
       
-      
-      {/* Use filtered data for display *
-      {analytics && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <DollarSign className="h-8 w-8 text-green-600" />
-                <div className={`${isRTL ? 'mr-4' : 'ml-4'}`}>
-                  <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(analytics.totalRevenue)}</p>
-                  {analytics.revenueGrowth > 0 && (
-                    <p className="text-sm text-green-600 flex items-center mt-1">
-                      <TrendingUp className="h-3 w-3 mr-1" />
-                      +{analytics.revenueGrowth.toFixed(1)}%
-                    </p>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <ShoppingCart className="h-8 w-8 text-blue-600" />
-                <div className={`${isRTL ? 'mr-4' : 'ml-4'}`}>
-                  <p className="text-sm font-medium text-gray-600">Total Orders</p>
-                  <p className="text-2xl font-bold text-gray-900">{analytics.totalOrders.toLocaleString()}</p>
-                  {analytics.ordersGrowth > 0 && (
-                    <p className="text-sm text-blue-600 flex items-center mt-1">
-                      <TrendingUp className="h-3 w-3 mr-1" />
-                      +{analytics.ordersGrowth.toFixed(1)}%
-                    </p>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <Users className="h-8 w-8 text-purple-600" />
-                <div className={`${isRTL ? 'mr-4' : 'ml-4'}`}>
-                  <p className="text-sm font-medium text-gray-600">Active Students</p>
-                  <p className="text-2xl font-bold text-gray-900">{analytics.totalStudents.toLocaleString()}</p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Avg: {analytics.averageOrderValue.toFixed(1)} orders/student
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <Store className="h-8 w-8 text-orange-600" />
-                <div className={`${isRTL ? 'mr-4' : 'ml-4'}`}>
-                  <p className="text-sm font-medium text-gray-600">Active Vendors</p>
-                  <p className="text-2xl font-bold text-gray-900">{analytics.totalVendors}</p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Avg: {formatCurrency(analytics.averageOrderValue)}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-        Quick Stats Overview */}
-
-      {/* Main Content Tabs */}
+        {/* Main Content Tabs */}
       <motion.div 
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -780,6 +948,194 @@ export function UniversityAdminDashboard() {
           </motion.div>
 
         <TabsContent value="analytics" className="space-y-4 md:space-y-6">
+          {/* University Performance Metrics Overview */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <Card className="w-full">
+              <CardHeader>
+                <CardTitle className="flex items-center text-base md:text-lg">
+                  <Activity className="h-4 w-4 md:h-5 md:w-5 mr-2" />
+                  University Performance Metrics
+                  {loading && (
+                    <motion.div 
+                      className="ml-2 w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full"
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    />
+                  )}
+                </CardTitle>
+                <CardDescription className="text-xs md:text-sm">
+                  Real-time performance indicators calculated from order data
+                  {Object.keys(vendorAnalytics).length > 0 && (
+                    <motion.span
+                      className="ml-2 inline-flex items-center text-green-600"
+                      animate={{ opacity: [0.5, 1, 0.5] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      • Live data
+                    </motion.span>
+                  )}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <motion.div 
+                    className="text-center p-4 bg-blue-50 rounded-lg"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.2 }}
+                    whileHover={{ scale: 1.05 }}
+                  >
+                    <div className="text-2xl font-bold text-blue-600">
+                      {loading ? (
+                        <motion.div 
+                          className="inline-block w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full"
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        />
+                      ) : (
+                        `${calculateAverageResponseTime(getFilteredOrders())}min`
+                      )}
+                    </div>
+                    <div className="text-sm text-blue-700 flex items-center justify-center">
+                      <span>Avg Response Time</span>
+                      {!loading && Math.abs(trends.responseTime.trend) > 1 && (
+                        <motion.div 
+                          className={`ml-2 flex items-center ${getTrendColor(getTrendDirection(trends.responseTime.trend))}`}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: 0.5 }}
+                        >
+                          {React.createElement(getTrendIcon(getTrendDirection(trends.responseTime.trend)), {
+                            className: "h-3 w-3 mr-1"
+                          })}
+                          <span className="text-xs">{Math.abs(trends.responseTime.trend).toFixed(1)}%</span>
+                        </motion.div>
+                      )}
+                    </div>
+                  </motion.div>
+                  
+                  <motion.div 
+                    className="text-center p-4 bg-green-50 rounded-lg"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.3 }}
+                    whileHover={{ scale: 1.05 }}
+                  >
+                    <div className="text-2xl font-bold text-green-600">
+                      {loading ? (
+                        <motion.div 
+                          className="inline-block w-6 h-6 border-2 border-green-600 border-t-transparent rounded-full"
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        />
+                      ) : (
+                        `${calculateCompletionRate(getFilteredOrders()).toFixed(1)}%`
+                      )}
+                    </div>
+                    <div className="text-sm text-green-700 flex items-center justify-center">
+                      <span>Completion Rate</span>
+                      {!loading && Math.abs(trends.completionRate.trend) > 1 && (
+                        <motion.div 
+                          className={`ml-2 flex items-center ${getTrendColor(getTrendDirection(trends.completionRate.trend))}`}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: 0.5 }}
+                        >
+                          {React.createElement(getTrendIcon(getTrendDirection(trends.completionRate.trend)), {
+                            className: "h-3 w-3 mr-1"
+                          })}
+                          <span className="text-xs">{Math.abs(trends.completionRate.trend).toFixed(1)}%</span>
+                        </motion.div>
+                      )}
+                    </div>
+                  </motion.div>
+                  
+                  <motion.div 
+                    className="text-center p-4 bg-orange-50 rounded-lg"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.4 }}
+                    whileHover={{ scale: 1.05 }}
+                  >
+                    <div className="text-2xl font-bold text-orange-600">
+                      {loading ? (
+                        <motion.div 
+                          className="inline-block w-6 h-6 border-2 border-orange-600 border-t-transparent rounded-full"
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        />
+                      ) : (
+                        getFilteredOrders().filter(o => o.status === 'completed').length
+                      )}
+                    </div>
+                    <div className="text-sm text-orange-700 flex items-center justify-center">
+                      <span>Completed Orders</span>
+                      {!loading && Math.abs(trends.orders.trend) > 1 && (
+                        <motion.div 
+                          className={`ml-2 flex items-center ${getTrendColor(getTrendDirection(trends.orders.trend))}`}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: 0.5 }}
+                        >
+                          {React.createElement(getTrendIcon(getTrendDirection(trends.orders.trend)), {
+                            className: "h-3 w-3 mr-1"
+                          })}
+                          <span className="text-xs">{Math.abs(trends.orders.trend).toFixed(1)}%</span>
+                        </motion.div>
+                      )}
+                    </div>
+                  </motion.div>
+                  
+                  <motion.div 
+                    className="text-center p-4 bg-purple-50 rounded-lg"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.5 }}
+                    whileHover={{ scale: 1.05 }}
+                  >
+                    <div className="text-2xl font-bold text-purple-600">
+                      {loading ? (
+                        <motion.div 
+                          className="inline-block w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full"
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        />
+                      ) : (
+                        formatCurrency(
+                          getFilteredOrders()
+                            .filter(o => o.status === 'completed')
+                            .reduce((sum, order) => sum + order.total, 0)
+                        )
+                      )}
+                    </div>
+                    <div className="text-sm text-purple-700 flex items-center justify-center">
+                      <span>Total Revenue</span>
+                      {!loading && Math.abs(trends.revenue.trend) > 1 && (
+                        <motion.div 
+                          className={`ml-2 flex items-center ${getTrendColor(getTrendDirection(trends.revenue.trend))}`}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: 0.6 }}
+                        >
+                          {React.createElement(getTrendIcon(getTrendDirection(trends.revenue.trend)), {
+                            className: "h-3 w-3 mr-1"
+                          })}
+                          <span className="text-xs">{Math.abs(trends.revenue.trend).toFixed(1)}%</span>
+                        </motion.div>
+                      )}
+                    </div>
+                  </motion.div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
           {/* Advanced Analytics Charts */}
           {analytics && (
             <motion.div 
@@ -799,14 +1155,15 @@ export function UniversityAdminDashboard() {
               hourlyData={analytics.peakOrderTimes.map(time => ({
                 hour: time.hour,
                 orders: time.orders,
-                revenue: time.orders * analytics.averageOrderValue
+                revenue: time.orders * (analytics.totalRevenue / Math.max(analytics.totalOrders, 1)) // Use actual average per order
               }))}
               categoryData={analytics.popularCategories.map(cat => ({
                 category: cat.category,
                 orders: cat.orders,
-                revenue: cat.orders * analytics.averageOrderValue,
+                revenue: cat.revenue, // Use actual revenue from service, not calculated estimate
                 percentage: cat.percentage
               }))}
+              orders={getFilteredOrders()} // Pass orders for correct category revenue calculation
             />
             </motion.div>
           )}
@@ -999,7 +1356,7 @@ export function UniversityAdminDashboard() {
             className="overflow-x-hidden"
           >
             <div className="w-full max-w-full">
-              <FoodTrendsAnalysis trends={foodTrends} />
+              <FoodTrendsAnalysis trends={foodTrends} orders={getFilteredOrders()} />
             </div>
           </motion.div>
         </TabsContent>
@@ -1019,7 +1376,10 @@ export function UniversityAdminDashboard() {
               </CardHeader>
               <CardContent className="px-3 md:px-6 w-full">
                 <div className="space-y-3 md:space-y-4">
-                  {getFilteredVendors().map((vendor, index) => (
+                  {getFilteredVendors().map((vendor, index) => {
+                    const metrics = calculateVendorMetrics(vendor.id, getFilteredOrders());
+                    
+                    return (
                     <motion.div 
                       key={vendor.id}
                       initial={{ opacity: 0, x: -20 }}
@@ -1037,8 +1397,8 @@ export function UniversityAdminDashboard() {
                       <div className="min-w-0 flex-1">
                         <h3 className="font-semibold text-sm md:text-base truncate">{vendor.name}</h3>
                         <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 mt-1 text-xs md:text-sm text-gray-600 space-y-1 sm:space-y-0">
-                          <span className="truncate">{vendor.totalOrders} orders</span>
-                          <span className="truncate">{formatCurrency(vendor.totalRevenue)}</span>
+                          <span className="truncate">{metrics.totalOrders} orders</span>
+                          <span className="truncate">{formatCurrency(metrics.totalRevenue)}</span>
                           <div className="flex items-center">
                             <Star className="h-3 w-3 text-yellow-400 mr-1" />
                             <span>{vendor.averageRating}</span>
@@ -1049,8 +1409,29 @@ export function UniversityAdminDashboard() {
                     
                     <div className="flex flex-row sm:flex-col lg:flex-row items-center space-x-3 sm:space-x-0 lg:space-x-4 sm:space-y-2 lg:space-y-0 w-full sm:w-auto">
                       <div className="text-left sm:text-right flex-1 sm:flex-initial">
-                        <p className="text-xs md:text-sm font-medium">{vendor.completionRate.toFixed(1)}% Success</p>
-                        <p className="text-xs text-gray-500">{vendor.responseTime}min avg response</p>
+                        <div className="flex items-center space-x-1">
+                          <p className="text-xs md:text-sm font-medium">{metrics.completionRate.toFixed(1)}% Success</p>
+                          {vendorAnalytics[vendor.id] && (
+                            <motion.div 
+                              className="w-2 h-2 bg-green-500 rounded-full"
+                              animate={{ scale: [1, 1.2, 1] }}
+                              transition={{ duration: 2, repeat: Infinity }}
+                              title="Real-time data"
+                            />
+                          )}
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <p className="text-xs text-gray-500">{metrics.averageResponseTime}min avg response</p>
+                          {calculateAverageResponseTime(getFilteredOrders().filter(o => o.vendorId === vendor.id)) !== metrics.averageResponseTime && (
+                            <motion.div 
+                              className="text-xs text-blue-500"
+                              animate={{ opacity: [0, 1, 0] }}
+                              transition={{ duration: 1.5, repeat: Infinity }}
+                            >
+                              ↻
+                            </motion.div>
+                          )}
+                        </div>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Badge 
@@ -1126,7 +1507,8 @@ export function UniversityAdminDashboard() {
                       </div>
                     </div>
                     </motion.div>
-                  ))}
+                    );
+                  })}
                   
                   {getFilteredVendors().length === 0 && (
                     <motion.div 
@@ -1356,10 +1738,12 @@ export function UniversityAdminDashboard() {
                   <AnimatePresence>
                     {getFilteredOrders().map((order, index) => {
                       const StatusIcon = getStatusIcon(order.status);
+                      const vendor = vendorPerformance.find(v => v.id === order.vendorId);
+                      const vendorName = vendor ? vendor.name : 'Unknown Vendor';
                       
                       return (
                         <motion.div 
-                          key={order.id}
+                          key={order.id || `order-${index}-${order.vendorId}-${order.createdAt?.seconds || Date.now()}`}
                           initial={{ opacity: 0, y: 20, scale: 0.95 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: -20, scale: 0.95 }}
@@ -1409,7 +1793,7 @@ export function UniversityAdminDashboard() {
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: 0.25 + index * 0.05 }}
                               >
-                                User: {order.userId.slice(0, 8)}... • Vendor: {order.vendorId.slice(0, 8)}...
+                                Vendor: {vendorName}
                               </motion.p>
                               <motion.p 
                                 className="text-xs text-gray-500"

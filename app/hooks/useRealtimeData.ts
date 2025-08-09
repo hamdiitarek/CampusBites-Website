@@ -205,15 +205,16 @@ export function useRealtimeUniversityData(universityName: string) {
                   .map(([category, count]) => ({
                     category,
                     orders: count,
-                    percentage: (count / totalOrders) * 100
+                    percentage: (count / totalOrders) * 100,
+                    revenue: count * 50 // Mock revenue calculation for real-time data
                   }))
                   .sort((a, b) => b.orders - a.orders)
               : [
-                  { category: 'Fast Food', orders: 85, percentage: 26.6 },
-                  { category: 'Healthy', orders: 72, percentage: 22.5 },
-                  { category: 'Beverages', orders: 68, percentage: 21.2 },
-                  { category: 'Desserts', orders: 45, percentage: 14.1 },
-                  { category: 'Snacks', orders: 50, percentage: 15.6 }
+                  { category: 'Fast Food', orders: 85, percentage: 26.6, revenue: 4250 },
+                  { category: 'Healthy', orders: 72, percentage: 22.5, revenue: 3600 },
+                  { category: 'Beverages', orders: 68, percentage: 21.2, revenue: 3400 },
+                  { category: 'Desserts', orders: 45, percentage: 14.1, revenue: 2250 },
+                  { category: 'Snacks', orders: 50, percentage: 15.6, revenue: 2500 }
                 ],
             dailyStats: Object.entries(dailyStats).length > 0
               ? Object.entries(dailyStats)

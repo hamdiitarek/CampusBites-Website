@@ -25,6 +25,7 @@ import type {
   User,
   Vendor,
   Order,
+  OrderItem,
   University,
   Complaint,
   Notification,
@@ -296,7 +297,66 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
 }
 
 export async function createOrder(orderData: Omit<Order, 'id'>): Promise<string> {
-  return createDocument<Order>(COLLECTIONS.ORDERS, orderData);
+  // Enrich order items with category information before creating the order
+  const enrichedOrderData = {
+    ...orderData,
+    items: await enrichOrderItemsWithCategories(orderData.vendorId, orderData.items)
+  };
+  
+  return createDocument<Order>(COLLECTIONS.ORDERS, enrichedOrderData);
+}
+
+/**
+ * Enrich order items with category information from vendor menu
+ */
+async function enrichOrderItemsWithCategories(vendorId: string, items: OrderItem[]): Promise<OrderItem[]> {
+  try {
+    // Get vendor menu structure
+    const menuRef = collection(db, COLLECTIONS.VENDORS, vendorId, 'menu');
+    const menuSnapshot = await getDocs(menuRef);
+    
+    // Build category mapping
+    const itemCategoryMap = new Map<string, string>();
+    
+    menuSnapshot.docs.forEach(doc => {
+      const menuData = doc.data();
+      
+      // Search through all categories in the menu
+      for (const [categoryName, categoryData] of Object.entries(menuData)) {
+        if (categoryData && typeof categoryData === 'object' && categoryData.Name) {
+          // This is a category object, search within its items
+          for (const [itemKey, itemData] of Object.entries(categoryData)) {
+            if (itemKey !== 'Name' && itemKey !== 'CID' && itemData && typeof itemData === 'object') {
+              const itemInfo = itemData as any;
+              const category = itemInfo.Category || categoryData.Name || categoryName;
+              
+              // Map by item ID and name for flexible matching
+              if (itemKey) itemCategoryMap.set(itemKey, category);
+              if (itemInfo.Name) itemCategoryMap.set(itemInfo.Name, category);
+              if (itemInfo.id) itemCategoryMap.set(itemInfo.id, category);
+            }
+          }
+        }
+      }
+    });
+    
+    // Enrich items with category information
+    return items.map(item => ({
+      ...item,
+      category: item.category || 
+                itemCategoryMap.get(item.id) || 
+                itemCategoryMap.get(item.name) || 
+                'Other'
+    }));
+    
+  } catch (error) {
+    console.error('Error enriching order items with categories:', error);
+    // Return items with default category if enrichment fails
+    return items.map(item => ({
+      ...item,
+      category: item.category || 'Other'
+    }));
+  }
 }
 
 export async function updateOrder(orderId: string, updates: Partial<Order>): Promise<void> {

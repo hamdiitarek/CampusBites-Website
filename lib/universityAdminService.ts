@@ -14,6 +14,26 @@ import {
   endBefore
 } from 'firebase/firestore';
 
+/**
+ * University Admin Service - Database Schema Compliant Filtering
+ * 
+ * This service filters all metrics, food trends, orders, and analytics by university
+ * through VENDOR ASSOCIATION ONLY, following the actual database schema where:
+ * - Orders contain only userId and vendorId (no universityName/universityId)
+ * - University filtering is achieved by first getting university vendors
+ * - Then filtering orders by those vendor IDs
+ * - Order items include category field (post-migration v1.1)
+ * 
+ * Key Features:
+ * - Vendor-based university filtering (database schema compliant)
+ * - Revenue calculations only from completed orders  
+ * - Proper handling of enhanced timestamp fields (migration v2.0)
+ * - University-scoped analytics through vendor association
+ * - Category analytics using migrated order item categories
+ * 
+ * All service methods filter by universityName through vendor relationships.
+ */
+
 // Types for University Admin Analytics
 export interface FoodTrendData {
   id: string;
@@ -40,7 +60,7 @@ export interface AnalyticsData {
   revenueGrowth: number;
   topSellingItems: FoodTrendData[];
   peakOrderTimes: { hour: number; orders: number; }[];
-  popularCategories: { category: string; percentage: number; orders: number; }[];
+  popularCategories: { category: string; percentage: number; orders: number; revenue: number; }[];
   dailyStats: { date: string; orders: number; revenue: number; }[];
   weeklyComparison: { thisWeek: number; lastWeek: number; growth: number; };
   monthlyComparison: { thisMonth: number; lastMonth: number; growth: number; };
@@ -86,11 +106,27 @@ export interface OrderData {
     price: number;
     note?: string;
     customizations?: any;
+    category?: string; // Added for database schema v1.1 (post-migration)
   }>;
   total: number;
   status: 'pending' | 'confirmed' | 'ready' | 'completed' | 'cancelled';
   paymentMethod: string;
-  createdAt: Timestamp;
+  createdAt: Timestamp;  // Order creation time
+  // Enhanced timestamp fields (Version 2.0 - may not exist in all orders)
+  confirmedAt?: Timestamp;  // When vendor confirms order
+  readyAt?: Timestamp;      // When order is ready for pickup
+  completedAt?: Timestamp;  // When order is completed
+  cancelledAt?: Timestamp;  // When order is cancelled
+  statusHistory?: Array<{   // Track all status changes
+    status: string;
+    timestamp: Timestamp;
+    updatedBy: string;
+    note?: string;
+  }>;
+  schemaVersion?: string;   // Migration version tracking
+  migratedAt?: Timestamp;   // When migration was applied
+  // NOTE: Orders do NOT have universityName/universityId in database schema
+  // University filtering is done through vendor association only
 }
 
 export class UniversityAdminService {
@@ -141,8 +177,8 @@ export class UniversityAdminService {
         ...doc.data()
       } as OrderData));
 
-      // Filter orders by university (since we can't query by universityName directly due to compound index limitations)
-      // We'll get the vendor's university and filter
+      // Filter orders by university (vendor-based filtering per database schema)
+      // Get vendors for this university
       const vendorsQuery = query(
         collection(db, 'vendors'),
         where('universityName', '==', universityName)
@@ -151,15 +187,26 @@ export class UniversityAdminService {
       const vendorsSnapshot = await getDocs(vendorsQuery);
       const universityVendorIds = vendorsSnapshot.docs.map(doc => doc.id);
 
-      // Filter orders for this university's vendors
-      const orders = allOrders.filter(order => 
-        universityVendorIds.includes(order.vendorId)
-      );
+      console.log(`🏛️  University: ${universityName}`);
+      console.log(`🏪 Found ${universityVendorIds.length} vendors for university: ${universityVendorIds.join(', ')}`);
 
-      // Calculate analytics
+      // Filter orders for this university's vendors (vendor-only filtering per database schema)
+      const orders = allOrders.filter(order => {
+        return universityVendorIds.includes(order.vendorId);
+      });
+
+      console.log(`📦 Total orders before university filter: ${allOrders.length}`);
+      console.log(`📦 Orders after university filter: ${orders.length}`);
+      
+      // Calculate analytics - only include completed orders for revenue and categories
       const totalOrders = orders.length;
-      const totalRevenue = orders.reduce((sum, order) => sum + (order.total || 0), 0);
-      const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+      const completedOrders = orders.filter(order => order.status === 'completed');
+      const totalRevenue = completedOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+      
+      console.log(`📦 Completed orders for analytics: ${completedOrders.length}`);
+      console.log(`📦 Sample vendor IDs from orders: ${Array.from(new Set(orders.slice(0, 5).map(o => o.vendorId))).join(', ')}`);
+      
+      const averageOrderValue = completedOrders.length > 0 ? totalRevenue / completedOrders.length : 0;
 
       // Get unique students and vendors
       const uniqueStudents = new Set(orders.map(order => order.userId)).size;
@@ -179,17 +226,19 @@ export class UniversityAdminService {
       const previousOrdersSnapshot = await getDocs(previousOrdersQuery);
       const allPreviousOrders = previousOrdersSnapshot.docs.map(doc => doc.data() as OrderData);
       
-      const previousOrders = allPreviousOrders.filter(order => 
-        universityVendorIds.includes(order.vendorId)
-      );
+      const previousOrders = allPreviousOrders.filter(order => {
+        return universityVendorIds.includes(order.vendorId);
+      });
       
-      const previousRevenue = previousOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+      const previousCompletedOrders = previousOrders.filter(order => order.status === 'completed');
+      const previousRevenue = previousCompletedOrders.reduce((sum, order) => sum + (order.total || 0), 0);
       const ordersGrowth = previousOrders.length > 0 ? ((totalOrders - previousOrders.length) / previousOrders.length) * 100 : 0;
       const revenueGrowth = previousRevenue > 0 ? ((totalRevenue - previousRevenue) / previousRevenue) * 100 : 0;
 
-      // Analyze food trends
+      // Analyze food trends - ONLY use completed orders for category analysis
       const itemCounts: { [key: string]: { count: number; revenue: number; category: string; } } = {};
       const categoryCounts: { [key: string]: number } = {};
+      const categoryRevenue: { [key: string]: number } = {};
       const hourlyOrders: { [key: number]: number } = {};
 
       // Get vendor data to enrich order items with categories
@@ -198,45 +247,100 @@ export class UniversityAdminService {
         vendorDataMap[vendorDoc.id] = vendorDoc.data();
       }
 
-      orders.forEach(order => {
+      // Process ONLY completed orders for category performance breakdown
+      completedOrders.forEach(order => {
         const hour = order.createdAt.toDate().getHours();
         hourlyOrders[hour] = (hourlyOrders[hour] || 0) + 1;
 
         const vendorData = vendorDataMap[order.vendorId];
-        const defaultCategory = vendorData?.categories?.[0] || 'Main Course';
+        const fallbackCategory = vendorData?.categories?.[0] || 'Other';
 
         order.items.forEach(item => {
-          // Use the vendor's main category as default category for items
-          const itemCategory = defaultCategory;
+          // Use the item's category from database schema (post-migration), fallback to vendor's main category
+          const itemCategory = item.category || fallbackCategory;
+          const itemRevenue = item.price * item.quantity;
           
           if (!itemCounts[item.name]) {
             itemCounts[item.name] = { count: 0, revenue: 0, category: itemCategory };
           }
           itemCounts[item.name].count += item.quantity;
-          itemCounts[item.name].revenue += item.price * item.quantity;
+          itemCounts[item.name].revenue += itemRevenue;
           
           categoryCounts[itemCategory] = (categoryCounts[itemCategory] || 0) + item.quantity;
+          categoryRevenue[itemCategory] = (categoryRevenue[itemCategory] || 0) + itemRevenue;
         });
       });
 
-      // Top selling items
-      const topSellingItems: FoodTrendData[] = Object.entries(itemCounts)
-        .sort((a, b) => b[1].count - a[1].count)
-        .slice(0, 10)
-        .map(([name, data]) => ({
-          id: name.toLowerCase().replace(/\s+/g, '-'),
-          name,
-          category: data.category,
-          totalOrders: data.count,
-          revenue: data.revenue,
-          averageRating: 4.2, // TODO: Calculate from reviews
-          popularityScore: (data.count / totalOrders) * 100,
-          trend: 'stable' as const, // TODO: Calculate trend
-          trendPercentage: 0,
-          peakHours: ['12:00', '18:00'], // TODO: Calculate actual peak hours
-          lastWeekOrders: Math.floor(data.count * 0.4),
-          thisWeekOrders: Math.floor(data.count * 0.6)
-        }));
+      // Calculate food trends using proper weekly comparison logic
+      const calculateFoodTrends = (itemCounts: {[key: string]: {count: number; revenue: number; category: string}}, orders: any[]) => {
+        const currentTime = new Date();
+        const weekAgo = new Date(currentTime.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const twoWeeksAgo = new Date(weekAgo.getTime() - 7 * 24 * 60 * 60 * 1000);
+        
+        // Split orders into current week and previous week for each item
+        const currentWeekItemCounts: {[key: string]: number} = {};
+        const previousWeekItemCounts: {[key: string]: number} = {};
+        
+        orders.forEach(order => {
+          const orderDate = order.createdAt.toDate ? order.createdAt.toDate() : new Date(order.createdAt);
+          
+          order.items.forEach((item: any) => {
+            const itemName = item.name;
+            
+            if (orderDate >= weekAgo) {
+              // Current week
+              currentWeekItemCounts[itemName] = (currentWeekItemCounts[itemName] || 0) + item.quantity;
+            } else if (orderDate >= twoWeeksAgo && orderDate < weekAgo) {
+              // Previous week
+              previousWeekItemCounts[itemName] = (previousWeekItemCounts[itemName] || 0) + item.quantity;
+            }
+          });
+        });
+        
+        return Object.entries(itemCounts).map(([name, data]) => {
+          const currentWeekCount = currentWeekItemCounts[name] || 0;
+          const previousWeekCount = previousWeekItemCounts[name] || 0;
+          
+          // Calculate trend percentage
+          let trendPercentage = 0;
+          let trend: 'up' | 'down' | 'stable' = 'stable';
+          
+          if (previousWeekCount > 0) {
+            trendPercentage = ((currentWeekCount - previousWeekCount) / previousWeekCount) * 100;
+          } else if (currentWeekCount > 0) {
+            trendPercentage = 100; // New item this week
+          }
+          
+          // Determine trend direction
+          if (Math.abs(trendPercentage) < 5) {
+            trend = 'stable';
+          } else if (trendPercentage > 0) {
+            trend = 'up';
+          } else {
+            trend = 'down';
+          }
+          
+          return {
+            id: name.toLowerCase().replace(/\s+/g, '-'),
+            name,
+            category: data.category,
+            totalOrders: data.count,
+            revenue: data.revenue,
+            averageRating: 4.2, // TODO: Calculate from reviews
+            popularityScore: (data.count / totalOrders) * 100,
+            trend,
+            trendPercentage: Math.round(trendPercentage * 10) / 10, // Round to 1 decimal
+            peakHours: ['12:00', '18:00'], // TODO: Calculate actual peak hours
+            lastWeekOrders: previousWeekCount,
+            thisWeekOrders: currentWeekCount
+          };
+        });
+      };
+
+      // Top selling items with proper trend calculations - using COMPLETED orders only
+      const topSellingItems: FoodTrendData[] = calculateFoodTrends(itemCounts, completedOrders)
+        .sort((a, b) => b.totalOrders - a.totalOrders)
+        .slice(0, 10);
 
       // Peak order times
       const peakOrderTimes = Object.entries(hourlyOrders)
@@ -249,10 +353,16 @@ export class UniversityAdminService {
         .map(([category, count]) => ({
           category,
           orders: count,
-          percentage: (count / totalCategoryOrders) * 100
+          percentage: (count / totalCategoryOrders) * 100,
+          revenue: categoryRevenue[category] || 0
         }))
         .sort((a, b) => b.orders - a.orders);
 
+      console.log(`📊 Category breakdown for ${universityName}:`, popularCategories);
+      console.log(`📊 Total category orders: ${totalCategoryOrders}`);
+      console.log(`📊 Category counts:`, categoryCounts);
+      console.log(`📊 Category revenue:`, categoryRevenue);
+      
       // Daily stats
       const dailyStats: { [key: string]: { orders: number; revenue: number; } } = {};
       orders.forEach(order => {
@@ -410,13 +520,15 @@ export class UniversityAdminService {
       for (const vendorDoc of vendorsSnapshot.docs) {
         const vendor = vendorDoc.data() as any;
         
-        // Filter orders for this specific vendor
-        const orders = allOrders.filter((order: any) => order.vendorId === vendorDoc.id);
+        // Filter orders for this specific vendor (vendor-only filtering per database schema)
+        const orders = allOrders.filter((order: any) => {
+          return order.vendorId === vendorDoc.id;
+        });
 
         const totalOrders = orders.length;
-        const totalRevenue = orders.reduce((sum: number, order: any) => sum + (order.total || 0), 0);
-        const completedOrders = orders.filter((order: any) => order.status === 'completed').length;
-        const completionRate = totalOrders > 0 ? (completedOrders / totalOrders) * 100 : 0;
+        const completedOrders = orders.filter((order: any) => order.status === 'completed');
+        const totalRevenue = completedOrders.reduce((sum: number, order: any) => sum + (order.total || 0), 0);
+        const completionRate = totalOrders > 0 ? (completedOrders.length / totalOrders) * 100 : 0;
 
         // Calculate average response time (mock data for now as we don't track response times)
         const averageResponseTime = 15; // minutes - placeholder
@@ -483,6 +595,9 @@ export class UniversityAdminService {
     customDateRange?: { from: Date; to: Date }
   ): Promise<OrderData[]> {
     try {
+      console.log(`🔍 getRecentOrders called with limit: ${limitCount} for university: ${universityName}`);
+      console.log(`📅 Custom date range:`, customDateRange);
+      
       // Get vendors for this university first
       const vendorsQuery = query(
         collection(db, 'vendors'),
@@ -492,12 +607,17 @@ export class UniversityAdminService {
       const vendorsSnapshot = await getDocs(vendorsQuery);
       const universityVendorIds = vendorsSnapshot.docs.map(doc => doc.id);
 
+      console.log(`🏪 Found ${universityVendorIds.length} vendors for university`);
+
       if (universityVendorIds.length === 0) {
+        console.log(`❌ No vendors found for university: ${universityName}`);
         return [];
       }
 
       // Build orders query
       let ordersQuery;
+      
+      console.log(`📊 Building query with limit multiplier: ${limitCount} * 2 = ${limitCount * 2}`);
       
       if (customDateRange) {
         // Query with date range
@@ -505,6 +625,8 @@ export class UniversityAdminService {
         const endDate = new Date(customDateRange.to);
         endDate.setHours(23, 59, 59, 999); // End of day
         const endTimestamp = Timestamp.fromDate(endDate);
+        
+        console.log(`📅 Using date range: ${customDateRange.from.toISOString()} to ${endTimestamp.toDate().toISOString()}`);
         
         ordersQuery = query(
           collection(db, 'orders'),
@@ -515,6 +637,7 @@ export class UniversityAdminService {
         );
       } else {
         // Regular query without date filter
+        console.log(`📅 Using recent orders query without date filter`);
         ordersQuery = query(
           collection(db, 'orders'),
           orderBy('createdAt', 'desc'),
@@ -528,15 +651,138 @@ export class UniversityAdminService {
         ...(doc.data() as any)
       } as OrderData));
 
-      // Filter orders for this university's vendors
+      console.log(`📦 Firebase returned ${allOrders.length} total orders`);
+      
+      // Filter orders for this university's vendors (vendor-only filtering per database schema)
       const universityOrders = allOrders
-        .filter(order => universityVendorIds.includes(order.vendorId))
+        .filter(order => {
+          return universityVendorIds.includes(order.vendorId);
+        })
         .slice(0, limitCount);
+
+      console.log(`📦 After university filtering: ${allOrders.filter(order => universityVendorIds.includes(order.vendorId)).length} orders`);
+      console.log(`📦 After final slice(0, ${limitCount}): ${universityOrders.length} orders`);
+      
+      const completedCount = universityOrders.filter(order => order.status === 'completed').length;
+      console.log(`✅ Completed orders in result: ${completedCount}`);
 
       return universityOrders;
 
     } catch (error) {
       console.error('Error fetching recent orders:', error);
+      throw error;
+    }
+  }
+
+  // Get vendor-specific analytics
+  static async getVendorAnalytics(
+    universityName: string, 
+    vendorId?: string,
+    dateRange?: { from: Date; to: Date }
+  ): Promise<{
+    averageResponseTime: number;
+    completionRate: number;
+    totalRevenue: number;
+    totalOrders: number;
+  }> {
+    try {
+      // Get university vendors first, then filter orders by vendor IDs
+      const vendorsQuery = query(
+        collection(db, 'vendors'),
+        where('universityName', '==', universityName)
+      );
+      
+      const vendorsSnapshot = await getDocs(vendorsQuery);
+      const universityVendorIds = vendorsSnapshot.docs.map(doc => doc.id);
+      
+      // Get orders, we'll filter by vendor after fetching
+      const ordersRef = collection(db, 'orders');
+      let q = query(
+        ordersRef,
+        orderBy('createdAt', 'desc'),
+        limit(1000) // Limit for performance
+      );
+      
+      if (vendorId) {
+        // If specific vendor requested, only get that vendor's orders
+        q = query(ordersRef, where('vendorId', '==', vendorId), orderBy('createdAt', 'desc'));
+      }
+      
+      const snapshot = await getDocs(q);
+      let orders = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as OrderData[];
+      
+      // Filter orders by university vendors (if no specific vendor requested)
+      if (!vendorId) {
+        orders = orders.filter(order => universityVendorIds.includes(order.vendorId));
+      }
+      
+      // Apply date range filter if provided (no university ID filtering since orders don't have university fields)
+      if (dateRange) {
+        orders = orders.filter(order => {
+          const orderDate = order.createdAt.toDate();
+          return orderDate >= dateRange.from && orderDate <= dateRange.to;
+        });
+      }
+      
+      // Calculate metrics
+      const totalOrders = orders.length;
+      const completedOrders = orders.filter(order => order.status === 'completed').length;
+      const completionRate = totalOrders > 0 ? (completedOrders / totalOrders) * 100 : 0;
+      
+      // Calculate average response time using real timestamps from migration
+      const ordersWithConfirmation = orders.filter(order => 
+        order.confirmedAt && order.createdAt && order.status !== 'cancelled'
+      );
+      
+      let averageResponseTime = 0;
+      if (ordersWithConfirmation.length > 0) {
+        // Use real confirmation timestamps
+        const totalResponseTime = ordersWithConfirmation.reduce((sum, order) => {
+          const created = order.createdAt.toDate();
+          const confirmed = order.confirmedAt!.toDate();
+          const responseTime = (confirmed.getTime() - created.getTime()) / (1000 * 60); // in minutes
+          return sum + responseTime;
+        }, 0);
+        
+        averageResponseTime = Math.round(totalResponseTime / ordersWithConfirmation.length);
+      } else {
+        // Fallback: estimate for orders without confirmed timestamps
+        const completedOrdersForResponse = orders.filter(order => 
+          order.status === 'completed' && order.createdAt
+        );
+        
+        if (completedOrdersForResponse.length > 0) {
+          const now = new Date();
+          const totalEstimatedTime = completedOrdersForResponse.reduce((sum, order) => {
+            const created = order.createdAt.toDate();
+            const timeSinceCreated = (now.getTime() - created.getTime()) / (1000 * 60); // in minutes
+            
+            // For completed orders, estimate they were confirmed within 15-30 minutes
+            const estimatedResponseTime = Math.min(timeSinceCreated, 25); // Cap at 25 minutes
+            return sum + estimatedResponseTime;
+          }, 0);
+          
+          averageResponseTime = Math.round(totalEstimatedTime / completedOrdersForResponse.length);
+        }
+      }
+      
+      // Calculate total revenue
+      const totalRevenue = orders
+        .filter(order => order.status === 'completed')
+        .reduce((sum, order) => sum + order.total, 0);
+      
+      return {
+        averageResponseTime,
+        completionRate,
+        totalRevenue,
+        totalOrders
+      };
+      
+    } catch (error) {
+      console.error('Error getting vendor analytics:', error);
       throw error;
     }
   }

@@ -61,11 +61,14 @@ export function DashboardHeader() {
     <div className={`bg-white shadow-sm border-b border-gray-200 px-4 py-3 ${isRTL ? 'font-arabic' : 'font-inter'}`}>
       <div className="max-w-full mx-auto flex items-center justify-between">
         {/* Logo/Title - positioned based on language direction */}
-        <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-4' : 'space-x-4'}`}>
-          <h1 className="text-xl font-bold text-gray-900">
-            {t('campusBites') || 'CampusBites'}
-          </h1>
-        </div>
+         <div className={`flex items-center ${isRTL ? 'flex-row-reverse' : ''}`}>
+            <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
+              <span className="text-white font-bold text-lg">C</span>
+            </div>
+            <span className={`text-xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent ${isRTL ? 'mr-3' : 'ml-3'}`}>
+              CampusBites
+            </span>
+          </div>
 
         {/* User info and actions - positioned based on language direction */}
         <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-4' : 'space-x-4'}`}>

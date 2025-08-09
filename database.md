@@ -115,6 +115,30 @@ Vendor-specific view of orders for efficient querying.
 
 Main orders collection for global order tracking.
 
+#### Current Schema (Version 1.1 - Enhanced with Categories)
+```javascript
+// Document ID: Auto-generated
+{
+  "id": "string",                    // Order ID
+  "userId": "string",                // Customer ID
+  "vendorId": "string",              // Vendor ID
+  "items": [{
+    "id": "string",                  // Menu item ID
+    "name": "string",                // Item name
+    "price": number,                 // Item price
+    "quantity": number,              // Quantity ordered
+    "note": "string",                // Special instructions
+    "customizations": {},            // Selected customizations
+    "category": "string"             // 🆕 Food category for analytics
+  }],
+  "total": number,                   // Total order amount
+  "status": "string",                // "pending", "confirmed", "ready", "completed", "cancelled"
+  "paymentMethod": "string",         // "Wallet" or "Cash"
+  "createdAt": timestamp             // Order creation time
+}
+```
+
+#### Enhanced Schema (Version 2.0 - Future Implementation)
 ```javascript
 // Document ID: Auto-generated
 {
@@ -132,9 +156,25 @@ Main orders collection for global order tracking.
   "total": number,                   // Total order amount
   "status": "string",                // "pending", "confirmed", "ready", "completed", "cancelled"
   "paymentMethod": "string",         // "Wallet" or "Cash"
-  "createdAt": timestamp             // Order creation time
+  "createdAt": timestamp,            // ✅ Order creation time (already exists)
+  "confirmedAt": timestamp,          // 🆕 When vendor confirms order
+  "readyAt": timestamp,              // 🆕 When order is ready for pickup
+  "completedAt": timestamp,          // 🆕 When order is completed
+  "cancelledAt": timestamp,          // 🆕 When order is cancelled (optional)
+  "statusHistory": [{               // 🆕 Track all status changes
+    "status": "string",              // Status name
+    "timestamp": timestamp,          // When status changed
+    "updatedBy": "string",           // Who changed the status (vendorId or userId)
+    "note": "string"                 // Optional status change note
+  }]
 }
 ```
+
+**Migration Benefits:**
+- **Accurate Response Times**: Real tracking of vendor confirmation times
+- **Performance Analytics**: Precise calculation of preparation times
+- **Order Timeline**: Complete audit trail of order progression
+- **Better UX**: Real-time status updates with exact timestamps
 
 #### Order Status Flow:
 1. **pending** → Initial order state
@@ -340,6 +380,42 @@ service cloud.firestore {
 
 ---
 
+## Database Migration & Schema Evolution
+
+### Schema Version 2.0 Migration
+
+**Migration Script**: `scripts/migrateOrderTimestamps.js`
+
+This migration adds enhanced timestamp tracking to existing orders for accurate analytics:
+
+#### New Fields Added:
+- `confirmedAt`: Timestamp when vendor confirms order
+- `readyAt`: Timestamp when order is ready for pickup  
+- `completedAt`: Timestamp when order is completed
+- `cancelledAt`: Timestamp when order is cancelled
+- `statusHistory`: Array tracking all status changes
+- `schemaVersion`: Version tracking for future migrations
+
+#### Migration Commands:
+```bash
+# Dry run to preview migration
+npm run migrate:orders:dry-run
+
+# Execute full migration  
+npm run migrate:orders
+
+# Rollback if needed
+npm run migrate:orders:rollback
+```
+
+#### Migration Benefits:
+- **Real Response Times**: Accurate vendor confirmation tracking
+- **Performance Analytics**: Precise preparation time calculations
+- **Complete Audit Trail**: Full order timeline visibility
+- **Better UX**: Real-time status updates with exact timestamps
+
+---
+
 ## Future Enhancements
 
 ### Planned Collections:
@@ -357,6 +433,6 @@ service cloud.firestore {
 
 ---
 
-*Last Updated: [Current Date]*
-*Database Version: 1.0*
+*Last Updated: August 8, 2025*
+*Database Version: 2.0 (Enhanced Timestamps)*
 *Document Maintained by: Campus Bites Development Team*
