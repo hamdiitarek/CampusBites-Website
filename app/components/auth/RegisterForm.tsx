@@ -11,8 +11,6 @@ import { Key, ExternalLink, Info, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AppwriteAuthContext';
 import { SuperAdminService } from '@/lib/superAdminService';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
 
 interface RegisterFormProps {
   onBackToLogin: () => void;
