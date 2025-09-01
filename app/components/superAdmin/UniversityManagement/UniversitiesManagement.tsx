@@ -22,7 +22,7 @@ import {
   Minus,
   RefreshCw
 } from 'lucide-react';
-import { SuperAdminService } from '@/lib/superAdminService';
+import { SuperAdminService } from '@/lib/appwriteSuperAdminService';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/(landing)/components/ui/dropdown-menu';
 
 interface University {

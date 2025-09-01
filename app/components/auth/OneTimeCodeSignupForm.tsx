@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/(la
 import { Alert, AlertDescription } from '@/(landing)/components/ui/alert';
 import { Loader2, Mail, Lock, User as UserIcon, Key, Building2, AlertCircle, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { SuperAdminService } from '@/lib/superAdminService';
+import { SuperAdminService } from '@/lib/appwriteSuperAdminService';
 import type { OneTimeCodeValidationResult } from '@/lib/models';
 
 interface OneTimeCodeSignupFormProps {

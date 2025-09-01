@@ -35,7 +35,7 @@ import {
   Ban
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/(landing)/components/ui/dropdown-menu';
-import { SuperAdminService } from '@/lib/superAdminService';
+import { SuperAdminService } from '@/lib/appwriteSuperAdminService';
 import type { UserData } from '@/lib/models';
 import { useToast } from '@/hooks/use-toast';
 

@@ -10,7 +10,7 @@ import { Label } from '@/(landing)/components/ui/label';
 import { Key, ExternalLink, Info, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AppwriteAuthContext';
-import { SuperAdminService } from '@/lib/superAdminService';
+import { SuperAdminService } from '@/lib/appwriteSuperAdminService';
 
 interface RegisterFormProps {
   onBackToLogin: () => void;

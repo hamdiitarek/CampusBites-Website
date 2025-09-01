@@ -29,7 +29,7 @@ import {
   Activity
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/(landing)/components/ui/dropdown-menu';
-import { SuperAdminService, EnrichedOrderData } from '@/lib/superAdminService';
+import { SuperAdminService, EnrichedOrderData } from '@/lib/appwriteSuperAdminService';
 import { safeTimestampToDate } from '@/lib/models';
 import { useToast } from '@/hooks/use-toast';
 
@@ -177,7 +177,7 @@ export function OrdersManagement() {
       // University filter
       if (selectedUniversity !== 'all') {
         filteredOrders = filteredOrders.filter(order =>
-          order?.universityId === selectedUniversity ||
+          // order?.universityId === selectedUniversity || // Order model doesn't have universityId
           order?.userDetails?.universityId === selectedUniversity ||
           order?.universityDetails?.id === selectedUniversity
         );

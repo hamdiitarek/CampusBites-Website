@@ -47,7 +47,7 @@ import {
   Crown,
   ExternalLink
 } from 'lucide-react';
-import { SuperAdminService } from '@/lib/superAdminService';
+import { SuperAdminService } from '@/lib/appwriteSuperAdminService';
 import { useAuth } from '@/contexts/AppwriteAuthContext';
 import { useToast } from '@/hooks/use-toast';
 import type { OneTimeCode, UniversityData, CreateOneTimeCodeRequest } from '@/lib/models';
