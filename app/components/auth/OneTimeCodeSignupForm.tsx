@@ -11,18 +11,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/(la
 import { Alert, AlertDescription } from '@/(landing)/components/ui/alert';
 import { Loader2, Mail, Lock, User as UserIcon, Key, Building2, AlertCircle, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { SuperAdminService } from '@/lib/superAdminService';
+import { SuperAdminService } from '@/lib/appwriteSuperAdminService';
 import type { OneTimeCodeValidationResult } from '@/lib/models';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
-import { auth, db } from '@/lib/firebase';
 
 interface OneTimeCodeSignupFormProps {
   onBackToLogin?: () => void;
 }
 
 export function OneTimeCodeSignupForm({ onBackToLogin }: OneTimeCodeSignupFormProps) {
-  const { getUserDashboardUrl } = useAuth();
+  const { getUserDashboardUrl, register } = useAuth();
   const { t, isRTL, language } = useLanguage();
   const { toast } = useToast();
   const router = useRouter();
@@ -135,32 +132,12 @@ export function OneTimeCodeSignupForm({ onBackToLogin }: OneTimeCodeSignupFormPr
     try {
       setRegistering(true);
 
-      // Create Firebase Auth user
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      // Update Firebase Auth profile
-      await updateProfile(user, { displayName: name });
-
-      // Create user document in Firestore
-      const userData = {
-        email,
-        fullName: name,
-        phoneNumber: phoneNumber || '',
-        universityId: codeValidation.code.universityId,
-        universityName: codeValidation.code.universityName,
-        role: codeValidation.code.type,
-        isEmailVerified: false,
-        walletBalance: 0,
-        createdAt: new Date().toISOString(),
-        createdViaOneTimeCode: true,
-        oneTimeCodeUsed: code
-      };
-
-      await setDoc(doc(db, 'users', user.uid), userData);
+      // Use Appwrite auth to register user
+      await register(email, password, name, codeValidation.code.type);
 
       // Mark the one-time code as used
-      await SuperAdminService.useOneTimeCode(code, user.uid);
+      // Note: The user creation and document setup is handled by the register function
+      await SuperAdminService.useOneTimeCode(code, email); // Use email as identifier
 
       toast({
         title: 'Account Created',

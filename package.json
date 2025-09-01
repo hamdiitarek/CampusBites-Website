@@ -23,6 +23,10 @@
     "cleanup:confirm": "node scripts/cleanup_invalid_orders.js --confirm",
     "appwrite:setup": "node scripts/setupAppwriteSchema.cjs setup",
     "appwrite:verify": "node scripts/verifyAppwriteSchema.cjs",
+    "appwrite:test": "node scripts/test_appwrite_integration.cjs",
+    "appwrite:demo": "node scripts/setup_demo_data_appwrite.js setup",
+    "appwrite:demo-clean": "node scripts/setup_demo_data_appwrite.js clean",
+    "appwrite:demo-reset": "node scripts/setup_demo_data_appwrite.js reset",
     "auth:verify": "node scripts/verifyAuthMigration.cjs"
   },
   "dependencies": {

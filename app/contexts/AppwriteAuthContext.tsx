@@ -1,16 +1,15 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { account, databases, appwriteConfig, ID } from '../../lib/appwriteClient';
-import { Query } from 'appwrite';
-import type { AppwriteUser } from '../../lib/appwriteTypes';
+import { account, databases, appwriteConfig } from '../lib/appwrite';
+import { ID, Query } from 'appwrite';
+import type { User } from '../lib/models';
 import type { Models } from 'appwrite';
 
 // Extend the User interface for auth-specific properties
-interface AuthUser extends Omit<AppwriteUser, '$id' | '$createdAt' | '$updatedAt' | '$permissions'> {
+interface AuthUser extends User {
   $id: string; // Appwrite user ID
   uid: string; // Alias for compatibility
-  id: string; // Alias for compatibility
 }
 
 interface AuthContextType {
@@ -21,7 +20,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (newPassword: string, oldPassword: string) => Promise<void>;
-  updateUserProfile: (updates: Partial<AppwriteUser>) => Promise<void>;
+  updateUserProfile: (updates: Partial<User>) => Promise<void>;
   updateWalletBalance: (amount: number) => Promise<void>;
   getUserDashboardUrl: (language: string) => string;
   refreshUserData: () => Promise<void>;
@@ -71,14 +70,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const accountData = await account.get();
       
       // Get user document from database
-      let userData: AppwriteUser | null = null;
+      let userData: User | null = null;
       try {
         const userDoc = await databases.getDocument(
           appwriteConfig.databaseId,
-          appwriteConfig.collections.users,
+          appwriteConfig.usersCollectionId,
           userId
         );
-        userData = userDoc as unknown as AppwriteUser;
+        userData = userDoc as unknown as User;
       } catch (error) {
         console.log('User document not found in database');
       }
@@ -86,24 +85,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const authUser: AuthUser = {
         $id: accountData.$id,
         uid: accountData.$id, // Compatibility alias
-        id: accountData.$id, // Compatibility alias
+        id: accountData.$id,
         fullName: userData?.fullName || accountData.name || '',
         email: userData?.email || accountData.email || '',
         universityId: userData?.universityId || '',
-        universityRef: userData?.universityRef || '',
+        universityName: userData?.universityName || '',
         phoneNumber: userData?.phoneNumber || '',
+        isEmailVerified: userData?.isEmailVerified ?? false,
         role: userData?.role || 'student',
         walletBalance: userData?.walletBalance || 0,
-        profileImageId: userData?.profileImageId || '',
-        isActive: userData?.isActive ?? true,
-        lastLoginAt: new Date().toISOString(),
-        deviceTokens: userData?.deviceTokens || [],
-        defaultAddress: userData?.defaultAddress || {
-          street: '',
-          city: '',
-          geo: { lat: 0, lng: 0 }
-        },
-        lastSeenAt: userData?.lastSeenAt || new Date().toISOString()
+        profileImageUrl: userData?.profileImageUrl || '',
+        fcmToken: userData?.fcmToken || '',
       };
 
       // Cache the data
@@ -147,7 +139,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const universitiesResult = await databases.listDocuments(
           appwriteConfig.databaseId,
-          appwriteConfig.collections.universities,
+          appwriteConfig.universitiesCollectionId,
           [Query.equal('emailDomain', emailDomain), Query.limit(1)]
         );
         
@@ -181,7 +173,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       await databases.createDocument(
         appwriteConfig.databaseId,
-        appwriteConfig.collections.users,
+        appwriteConfig.usersCollectionId,
         newAccount.$id,
         userDocData
       );
@@ -227,14 +219,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const updateUserProfile = async (updates: Partial<AppwriteUser>) => {
+  const updateUserProfile = async (updates: Partial<User>) => {
     if (!user) throw new Error('No authenticated user');
     
     try {
       // Update user document in database
       await databases.updateDocument(
         appwriteConfig.databaseId,
-        appwriteConfig.collections.users,
+        appwriteConfig.usersCollectionId,
         user.$id,
         updates as any
       );
@@ -257,7 +249,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Update wallet balance in database
       await databases.updateDocument(
         appwriteConfig.databaseId,
-        appwriteConfig.collections.users,
+        appwriteConfig.usersCollectionId,
         user.$id,
         { walletBalance: amount }
       );

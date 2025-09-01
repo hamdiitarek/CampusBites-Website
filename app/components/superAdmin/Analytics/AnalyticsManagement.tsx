@@ -27,7 +27,7 @@ import {
   Star,
   AlertCircle
 } from 'lucide-react';
-import { SuperAdminService } from '@/lib/superAdminService';
+import { SuperAdminService } from '@/lib/appwriteSuperAdminService';
 import { useToast } from '@/hooks/use-toast';
 
 export function AnalyticsManagement() {
