@@ -4,7 +4,7 @@
  * Verifies that the Appwrite database schema is properly set up
  */
 
-const { Client, Databases, Storage } = require('appwrite');
+const { Client, Databases, Storage } = require('node-appwrite');
 const dotenv = require('dotenv');
 
 // Load environment variables

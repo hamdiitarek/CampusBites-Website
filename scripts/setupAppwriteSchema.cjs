@@ -11,7 +11,7 @@
  * - Index creation for performance
  */
 
-const { Client, Databases, Storage, Permission, Role, ID } = require('appwrite');
+const { Client, Databases, Storage, Permission, Role, ID } = require('node-appwrite');
 const dotenv = require('dotenv');
 
 // Load environment variables
@@ -55,10 +55,10 @@ const schemas = {
   users: {
     name: 'Users',
     permissions: [
-      Permission.create(Role.users()),
-      Permission.read(Role.users()),
-      Permission.update(Role.users()),
-      Permission.delete(Role.users())
+      Permission.create(Role.any()),
+      Permission.read(Role.any()),
+      Permission.update(Role.any()),
+      Permission.delete(Role.any())
     ],
     attributes: [
       { key: 'id', type: 'string', size: 36, required: true },
@@ -67,9 +67,9 @@ const schemas = {
       { key: 'universityId', type: 'string', size: 100, required: true },
       { key: 'universityName', type: 'string', size: 255, required: true },
       { key: 'phoneNumber', type: 'string', size: 20, required: false },
-      { key: 'isEmailVerified', type: 'boolean', required: true, default: false },
+      { key: 'isEmailVerified', type: 'boolean', required: false, default: false },
       { key: 'role', type: 'enum', elements: ['student', 'vendor', 'admin', 'super-admin'], required: true },
-      { key: 'walletBalance', type: 'float', required: true, default: 0 },
+      { key: 'walletBalance', type: 'float', required: false, default: 0 },
       { key: 'profileImageUrl', type: 'url', required: false },
       { key: 'fcmToken', type: 'string', size: 255, required: false }
     ],
@@ -83,10 +83,10 @@ const schemas = {
   vendors: {
     name: 'Vendors',
     permissions: [
-      Permission.create(Role.users()),
+      Permission.create(Role.any()),
       Permission.read(Role.any()),
-      Permission.update(Role.users()),
-      Permission.delete(Role.users('admin'), Role.users('super-admin'))
+      Permission.update(Role.any()),
+      Permission.delete(Role.any())
     ],
     attributes: [
       { key: 'id', type: 'string', size: 36, required: true },
@@ -96,28 +96,28 @@ const schemas = {
       { key: 'universityName', type: 'string', size: 255, required: true },
       { key: 'description', type: 'string', size: 1000, required: true },
       { key: 'imageUrl', type: 'url', required: false },
-      { key: 'rating', type: 'float', required: true, default: 0, min: 0, max: 5 },
-      { key: 'reviewCount', type: 'integer', required: true, default: 0, min: 0 },
+      { key: 'rating', type: 'float', required: false, default: 0, min: 0, max: 5 },
+      { key: 'reviewCount', type: 'integer', required: false, default: 0, min: 0 },
       { key: 'categories', type: 'string', size: 500, required: true, array: true },
-      { key: 'isOpen', type: 'boolean', required: true, default: true },
-      { key: 'isApproved', type: 'boolean', required: true, default: false },
-      { key: 'isSuspended', type: 'boolean', required: true, default: false }
+      { key: 'isOpen', type: 'boolean', required: false, default: true },
+      { key: 'isApproved', type: 'boolean', required: false, default: false },
+      { key: 'isSuspended', type: 'boolean', required: false, default: false }
     ],
     indexes: [
       { key: 'user_index', type: 'unique', attributes: ['userId'] },
       { key: 'university_index', type: 'key', attributes: ['universityName'] },
       { key: 'status_index', type: 'key', attributes: ['isApproved', 'isSuspended'] },
-      { key: 'categories_index', type: 'fulltext', attributes: ['categories'] }
+      { key: 'categories_index', type: 'key', attributes: ['categories'] }
     ]
   },
 
   orders: {
     name: 'Orders',
     permissions: [
-      Permission.create(Role.users()),
-      Permission.read(Role.users()),
-      Permission.update(Role.users()),
-      Permission.delete(Role.users('admin'), Role.users('super-admin'))
+      Permission.create(Role.any()),
+      Permission.read(Role.any()),
+      Permission.update(Role.any()),
+      Permission.delete(Role.any())
     ],
     attributes: [
       { key: 'id', type: 'string', size: 36, required: true },
@@ -147,9 +147,9 @@ const schemas = {
     name: 'Universities',
     permissions: [
       Permission.read(Role.any()),
-      Permission.create(Role.users('admin'), Role.users('super-admin')),
-      Permission.update(Role.users('admin'), Role.users('super-admin')),
-      Permission.delete(Role.users('super-admin'))
+      Permission.create(Role.any()),
+      Permission.update(Role.any()),
+      Permission.delete(Role.any())
     ],
     attributes: [
       { key: 'id', type: 'string', size: 36, required: true },
@@ -162,7 +162,7 @@ const schemas = {
       { key: 'addressAr', type: 'string', size: 500, required: false },
       { key: 'phone', type: 'string', size: 20, required: false },
       { key: 'website', type: 'url', required: false },
-      { key: 'isActive', type: 'boolean', required: true, default: true }
+      { key: 'isActive', type: 'boolean', required: false, default: true }
     ],
     indexes: [
       { key: 'domain_index', type: 'unique', attributes: ['emailDomain'] },
@@ -174,10 +174,10 @@ const schemas = {
   complaints: {
     name: 'Complaints',
     permissions: [
-      Permission.create(Role.users()),
-      Permission.read(Role.users()),
-      Permission.update(Role.users('admin'), Role.users('super-admin')),
-      Permission.delete(Role.users('admin'), Role.users('super-admin'))
+      Permission.create(Role.any()),
+      Permission.read(Role.any()),
+      Permission.update(Role.any()),
+      Permission.delete(Role.any())
     ],
     attributes: [
       { key: 'id', type: 'string', size: 36, required: true },
@@ -204,10 +204,10 @@ const schemas = {
   notifications: {
     name: 'Notifications',
     permissions: [
-      Permission.create(Role.users('admin'), Role.users('super-admin')),
-      Permission.read(Role.users()),
-      Permission.update(Role.users()),
-      Permission.delete(Role.users())
+      Permission.create(Role.any()),
+      Permission.read(Role.any()),
+      Permission.update(Role.any()),
+      Permission.delete(Role.any())
     ],
     attributes: [
       { key: 'id', type: 'string', size: 36, required: true },
@@ -231,10 +231,10 @@ const schemas = {
   transactions: {
     name: 'Transactions',
     permissions: [
-      Permission.create(Role.users()),
-      Permission.read(Role.users()),
-      Permission.update(Role.users('admin'), Role.users('super-admin')),
-      Permission.delete(Role.users('super-admin'))
+      Permission.create(Role.any()),
+      Permission.read(Role.any()),
+      Permission.update(Role.any()),
+      Permission.delete(Role.any())
     ],
     attributes: [
       { key: 'id', type: 'string', size: 36, required: true },
@@ -260,10 +260,10 @@ const schemas = {
   reviews: {
     name: 'Reviews',
     permissions: [
-      Permission.create(Role.users()),
+      Permission.create(Role.any()),
       Permission.read(Role.any()),
-      Permission.update(Role.users()),
-      Permission.delete(Role.users())
+      Permission.update(Role.any()),
+      Permission.delete(Role.any())
     ],
     attributes: [
       { key: 'id', type: 'string', size: 36, required: true },
@@ -272,7 +272,7 @@ const schemas = {
       { key: 'orderId', type: 'string', size: 36, required: true },
       { key: 'rating', type: 'integer', required: true, min: 1, max: 5 },
       { key: 'comment', type: 'string', size: 1000, required: false },
-      { key: 'isPublic', type: 'boolean', required: true, default: true }
+      { key: 'isPublic', type: 'boolean', required: false, default: true }
     ],
     indexes: [
       { key: 'user_index', type: 'key', attributes: ['userId'] },
@@ -285,10 +285,10 @@ const schemas = {
   oneTimeCodes: {
     name: 'One Time Codes',
     permissions: [
-      Permission.create(Role.users('super-admin')),
-      Permission.read(Role.users('super-admin')),
-      Permission.update(Role.users('super-admin')),
-      Permission.delete(Role.users('super-admin'))
+      Permission.create(Role.any()),
+      Permission.read(Role.any()),
+      Permission.update(Role.any()),
+      Permission.delete(Role.any())
     ],
     attributes: [
       { key: 'id', type: 'string', size: 36, required: true },
@@ -300,9 +300,9 @@ const schemas = {
       { key: 'expiresAt', type: 'datetime', required: true },
       { key: 'usedAt', type: 'datetime', required: false },
       { key: 'usedBy', type: 'string', size: 36, required: false },
-      { key: 'isActive', type: 'boolean', required: true, default: true },
-      { key: 'maxUses', type: 'integer', required: true, default: 1, min: 1 },
-      { key: 'usageCount', type: 'integer', required: true, default: 0, min: 0 },
+      { key: 'isActive', type: 'boolean', required: false, default: true },
+      { key: 'maxUses', type: 'integer', required: false, default: 1, min: 1 },
+      { key: 'usageCount', type: 'integer', required: false, default: 0, min: 0 },
       { key: 'metadata', type: 'string', size: 2000, required: false } // JSON object
     ],
     indexes: [
@@ -316,18 +316,18 @@ const schemas = {
   analytics: {
     name: 'Analytics',
     permissions: [
-      Permission.create(Role.users('admin'), Role.users('super-admin')),
-      Permission.read(Role.users('admin'), Role.users('super-admin')),
-      Permission.update(Role.users('admin'), Role.users('super-admin')),
-      Permission.delete(Role.users('super-admin'))
+      Permission.create(Role.any()),
+      Permission.read(Role.any()),
+      Permission.update(Role.any()),
+      Permission.delete(Role.any())
     ],
     attributes: [
       { key: 'id', type: 'string', size: 36, required: true },
       { key: 'date', type: 'string', size: 10, required: true }, // YYYY-MM-DD format
-      { key: 'totalOrders', type: 'integer', required: true, default: 0, min: 0 },
-      { key: 'totalRevenue', type: 'float', required: true, default: 0, min: 0 },
-      { key: 'averageOrderValue', type: 'float', required: true, default: 0, min: 0 },
-      { key: 'completionRate', type: 'float', required: true, default: 0, min: 0, max: 100 },
+      { key: 'totalOrders', type: 'integer', required: false, default: 0, min: 0 },
+      { key: 'totalRevenue', type: 'float', required: false, default: 0, min: 0 },
+      { key: 'averageOrderValue', type: 'float', required: false, default: 0, min: 0 },
+      { key: 'completionRate', type: 'float', required: false, default: 0, min: 0, max: 100 },
       { key: 'vendorId', type: 'string', size: 36, required: false },
       { key: 'universityId', type: 'string', size: 100, required: false }
     ],
@@ -554,10 +554,10 @@ async function createStorageBucket() {
       config.storageBucketId,
       'Campus Bites Images',
       [
-        Permission.create(Role.users()),
+        Permission.create(Role.any()),
         Permission.read(Role.any()),
-        Permission.update(Role.users()),
-        Permission.delete(Role.users())
+        Permission.update(Role.any()),
+        Permission.delete(Role.any())
       ],
       false, // fileSecurity
       true,  // enabled
