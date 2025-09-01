@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AppwriteAuthContext';
 import { formatDate as utilFormatDate } from '@/lib/utils';
 import { safeTimestampToDate, formatTimestamp } from '@/lib/models';
 import { SuperAdminLayout } from './superAdmin/SuperAdminLayout';

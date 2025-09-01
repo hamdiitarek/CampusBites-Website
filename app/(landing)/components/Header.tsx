@@ -4,7 +4,7 @@
 import { Menu, X, User, LogOut } from 'lucide-react';
 import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AppwriteAuthContext';
 import LanguageToggle from './LanguageToggle';
 import { Button } from './ui/button';
 import {

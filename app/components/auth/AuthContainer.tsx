@@ -5,7 +5,7 @@ import { LoginForm } from './LoginForm';
 import { ForgotPasswordForm } from './ForgotPasswordForm';
 import { RegisterFormWrapper } from './RegisterFormWrapper';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AppwriteAuthContext';
 import { usePathname, useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
