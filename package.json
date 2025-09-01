@@ -20,7 +20,9 @@
     "dashboard:test-fix": "node scripts/test_dashboard_fix.js",
     "cleanup:analyze": "node scripts/cleanup_invalid_orders.js analyze",
     "cleanup:dry-run": "node scripts/cleanup_invalid_orders.js --dry-run",
-    "cleanup:confirm": "node scripts/cleanup_invalid_orders.js --confirm"
+    "cleanup:confirm": "node scripts/cleanup_invalid_orders.js --confirm",
+    "appwrite:setup": "node scripts/setupAppwriteSchema.cjs setup",
+    "appwrite:verify": "node scripts/verifyAppwriteSchema.cjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -57,6 +59,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^3.6.0",
+    "dotenv": "^17.2.1",
     "embla-carousel-react": "^8.6.0",
     "firebase": "^12.0.0",
     "firebase-admin": "^13.4.0",
