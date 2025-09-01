@@ -1,31 +1,34 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-import { getAnalytics } from "firebase/analytics";
+import { Client, Account, Databases, Storage, Functions, Teams } from 'appwrite';
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyBxtC8pV9alKYNITJ4j13Iy3ZI-_j8XS_M",
-  authDomain: "campusbites-eg.firebaseapp.com",
-  projectId: "campusbites-eg",
-  storageBucket: "campusbites-eg.firebasestorage.app",
-  messagingSenderId: "970089094387",
-  appId: "1:970089094387:web:9a7a6dea9f163ae5a12b86",
-  measurementId: "G-YHYJ77SP8M"
+// Appwrite configuration
+const appwriteConfig = {
+  endpoint: process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://cloud.appwrite.io/v1',
+  projectId: process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || 'campusbites-eg',
+  databaseId: process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID || 'main',
+  // Collection IDs
+  usersCollectionId: process.env.NEXT_PUBLIC_APPWRITE_USERS_COLLECTION_ID || 'users',
+  vendorsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_VENDORS_COLLECTION_ID || 'vendors',
+  ordersCollectionId: process.env.NEXT_PUBLIC_APPWRITE_ORDERS_COLLECTION_ID || 'orders',
+  universitiesCollectionId: process.env.NEXT_PUBLIC_APPWRITE_UNIVERSITIES_COLLECTION_ID || 'universities',
+  complaintsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COMPLAINTS_COLLECTION_ID || 'complaints',
+  notificationsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_NOTIFICATIONS_COLLECTION_ID || 'notifications',
+  // Storage bucket
+  storageBucketId: process.env.NEXT_PUBLIC_APPWRITE_STORAGE_BUCKET_ID || 'images'
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Initialize Appwrite client
+export const client = new Client()
+  .setEndpoint(appwriteConfig.endpoint)
+  .setProject(appwriteConfig.projectId);
 
-// Initialize Firebase Authentication and get a reference to the service
-export const auth = getAuth(app);
+// Initialize services
+export const account = new Account(client);
+export const databases = new Databases(client);
+export const storage = new Storage(client);
+export const functions = new Functions(client);
+export const teams = new Teams(client);
 
-// Initialize Cloud Firestore and get a reference to the service
-export const db = getFirestore(app);
+// Export configuration for use in other files
+export { appwriteConfig };
 
-// Initialize Analytics (only in browser environment)
-export const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
-
-export default app;
+export default client;
