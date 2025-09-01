@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AppwriteAuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/(landing)/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/(landing)/components/ui/card';

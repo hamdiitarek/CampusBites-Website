@@ -48,7 +48,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { SuperAdminService } from '@/lib/superAdminService';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AppwriteAuthContext';
 import { useToast } from '@/hooks/use-toast';
 import type { OneTimeCode, UniversityData, CreateOneTimeCodeRequest } from '@/lib/models';
 

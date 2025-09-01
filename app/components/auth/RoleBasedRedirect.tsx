@@ -1,6 +1,6 @@
 'use client';
 
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AppwriteAuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useEffect } from 'react';
 import { Loader2 } from 'lucide-react';

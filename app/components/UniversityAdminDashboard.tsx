@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AppwriteAuthContext';
 import { UniversityAdminLayout } from './universityAdmin/UniversityAdminLayout';
 import { FoodTrendsAnalysis } from './universityAdmin/FoodTrendsAnalysis';
 import { AdvancedAnalyticsCharts, MetricCard } from './universityAdmin/AnalyticsCharts';

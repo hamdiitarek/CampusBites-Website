@@ -1,6 +1,6 @@
 'use client';
 
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AppwriteAuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/(landing)/components/ui/button';
 import { Avatar, AvatarFallback } from '@/(landing)/components/ui/avatar';

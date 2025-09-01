@@ -22,7 +22,8 @@
     "cleanup:dry-run": "node scripts/cleanup_invalid_orders.js --dry-run",
     "cleanup:confirm": "node scripts/cleanup_invalid_orders.js --confirm",
     "appwrite:setup": "node scripts/setupAppwriteSchema.cjs setup",
-    "appwrite:verify": "node scripts/verifyAppwriteSchema.cjs"
+    "appwrite:verify": "node scripts/verifyAppwriteSchema.cjs",
+    "auth:verify": "node scripts/verifyAuthMigration.cjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -68,6 +69,7 @@
     "lucide-react": "^0.462.0",
     "next": "^15.3.3",
     "next-themes": "^0.4.6",
+    "node-appwrite": "^18.0.0",
     "react": "^19.1.0",
     "react-day-picker": "^8.10.1",
     "react-dom": "^19.1.0",
