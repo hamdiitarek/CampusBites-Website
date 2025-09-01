@@ -2,12 +2,57 @@
 
 ## Overview
 
-Campus Bites uses **Firebase Firestore** as its primary NoSQL database, with the following key architectural decisions:
+Campus Bites is migrating from **Firebase Firestore** to **Appwrite** as its primary NoSQL database. The migration maintains the same architectural decisions while leveraging Appwrite's benefits:
+
+### Current Status: Migration in Progress
+- **Legacy System**: Firebase Firestore (existing data preserved)
+- **New System**: Appwrite (new backend implementation)
+- **Migration Strategy**: Parallel implementation without data migration
+
+### Key Architectural Decisions (Maintained in both systems):
 
 - **Multi-app Architecture**: Customer, Vendor, and Admin apps share a common database
 - **Role-based Access**: Users have different roles (student, vendor, admin) with specific permissions
 - **University-scoped Data**: Most data is filtered by university to ensure campus-specific operations
-- **Real-time Updates**: Leverages Firestore's real-time capabilities for order tracking and notifications
+- **Real-time Updates**: Leverages real-time capabilities for order tracking and notifications
+
+## Database Systems
+
+### Appwrite (Current Implementation)
+- **Endpoint**: Configurable via environment variables
+- **Database**: Single database with multiple collections
+- **Authentication**: Appwrite Auth with email/password
+- **Real-time**: WebSocket-based subscriptions
+- **Storage**: Appwrite Storage for file uploads
+- **Security**: Collection-level and document-level permissions
+
+### Firebase Firestore (Legacy - Data Preserved)
+- **Project**: campusbites-eg
+- **Authentication**: Firebase Auth
+- **Real-time**: Firestore real-time listeners
+- **Storage**: Firebase Storage
+- **Security**: Firestore security rules
+
+---
+
+## Appwrite Collections Schema
+
+All collections maintain the same data structure as Firebase with some enhancements:
+
+### Configuration
+```typescript
+// Environment Variables Required
+NEXT_PUBLIC_APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
+NEXT_PUBLIC_APPWRITE_PROJECT_ID=your-project-id
+NEXT_PUBLIC_APPWRITE_DATABASE_ID=main
+NEXT_PUBLIC_APPWRITE_USERS_COLLECTION_ID=users
+NEXT_PUBLIC_APPWRITE_VENDORS_COLLECTION_ID=vendors
+NEXT_PUBLIC_APPWRITE_ORDERS_COLLECTION_ID=orders
+NEXT_PUBLIC_APPWRITE_UNIVERSITIES_COLLECTION_ID=universities
+NEXT_PUBLIC_APPWRITE_COMPLAINTS_COLLECTION_ID=complaints
+NEXT_PUBLIC_APPWRITE_NOTIFICATIONS_COLLECTION_ID=notifications
+NEXT_PUBLIC_APPWRITE_STORAGE_BUCKET_ID=images
+```
 
 ---
 

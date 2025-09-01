@@ -1,26 +1,15 @@
 /**
- * Campus Bites - Database Service Utilities
- * Helper functions for common database operations
+ * Campus Bites - Database Service Utilities (Appwrite)
+ * Helper functions for common database operations using Appwrite
  */
 
+import { databases, appwriteConfig } from '../appwrite';
+import { ID, Query } from 'appwrite';
 import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  query,
-  where,
-  orderBy,
-  limit,
-  startAfter,
-  DocumentSnapshot,
-  QueryConstraint,
-  Timestamp
-} from 'firebase/firestore';
-import { db } from '../appwrite';
+  userService,
+  vendorService,
+  orderService
+} from '../appwriteService';
 import type {
   User,
   Vendor,
@@ -28,14 +17,54 @@ import type {
   OrderItem,
   University,
   Complaint,
-  Notification,
-  Transaction,
-  PaginatedResponse,
-  UserFilters,
-  OrderFilters,
-  VendorFilters
+  Notification
 } from './index';
-import { COLLECTIONS, DEFAULT_VALUES } from './constants';
+import type { 
+  UserRole,
+  OrderStatus
+} from './constants';
+import { 
+  COLLECTIONS, 
+  DEFAULT_VALUES
+} from './constants';
+
+// Re-export transaction type if it exists
+type Transaction = any; // TODO: Define transaction type if needed
+
+// Define filter interfaces
+interface UserFilters {
+  role?: UserRole;
+  universityName?: string;
+  isEmailVerified?: boolean;
+}
+
+interface VendorFilters {
+  isApproved?: boolean;
+  isOpen?: boolean;
+  isSuspended?: boolean;
+  universityName?: string;
+  category?: string;
+}
+
+interface OrderFilters {
+  status?: OrderStatus;
+  vendorId?: string;
+  userId?: string;
+  paymentMethod?: string;
+  dateFrom?: Date;
+  dateTo?: Date;
+}
+
+interface PaginatedResponse<T> {
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+}
 
 // ========================================
 // Generic Database Operations
@@ -49,17 +78,16 @@ export async function getDocumentById<T>(
   documentId: string
 ): Promise<T | null> {
   try {
-    const docRef = doc(db, collectionName, documentId);
-    const docSnap = await getDoc(docRef);
+    const doc = await databases.getDocument(
+      appwriteConfig.databaseId,
+      getCollectionId(collectionName),
+      documentId
+    );
     
-    if (docSnap.exists()) {
-      return { id: docSnap.id, ...docSnap.data() } as T;
-    }
-    
-    return null;
+    return mapDocumentToType<T>(doc);
   } catch (error) {
     console.error(`Error getting document from ${collectionName}:`, error);
-    throw error;
+    return null;
   }
 }
 
@@ -68,18 +96,18 @@ export async function getDocumentById<T>(
  */
 export async function createDocument<T>(
   collectionName: string,
-  data: Omit<T, 'id'> & { createdAt?: Timestamp; updatedAt?: Timestamp }
+  data: Omit<T, 'id'>
 ): Promise<string> {
   try {
-    const timestamp = Timestamp.now();
-    const docData = {
-      ...data,
-      createdAt: data.createdAt || timestamp,
-      updatedAt: data.updatedAt || timestamp
-    };
+    const docId = ID.unique();
+    await databases.createDocument(
+      appwriteConfig.databaseId,
+      getCollectionId(collectionName),
+      docId,
+      data
+    );
     
-    const docRef = await addDoc(collection(db, collectionName), docData);
-    return docRef.id;
+    return docId;
   } catch (error) {
     console.error(`Error creating document in ${collectionName}:`, error);
     throw error;
@@ -92,16 +120,15 @@ export async function createDocument<T>(
 export async function updateDocument<T>(
   collectionName: string,
   documentId: string,
-  updates: Partial<T> & { updatedAt?: Timestamp }
+  updates: Partial<T>
 ): Promise<void> {
   try {
-    const docRef = doc(db, collectionName, documentId);
-    const updateData = {
-      ...updates,
-      updatedAt: Timestamp.now()
-    };
-    
-    await updateDoc(docRef, updateData);
+    await databases.updateDocument(
+      appwriteConfig.databaseId,
+      getCollectionId(collectionName),
+      documentId,
+      updates
+    );
   } catch (error) {
     console.error(`Error updating document in ${collectionName}:`, error);
     throw error;
@@ -116,8 +143,11 @@ export async function deleteDocument(
   documentId: string
 ): Promise<void> {
   try {
-    const docRef = doc(db, collectionName, documentId);
-    await deleteDoc(docRef);
+    await databases.deleteDocument(
+      appwriteConfig.databaseId,
+      getCollectionId(collectionName),
+      documentId
+    );
   } catch (error) {
     console.error(`Error deleting document from ${collectionName}:`, error);
     throw error;
@@ -125,75 +155,23 @@ export async function deleteDocument(
 }
 
 /**
- * Get multiple documents with optional filtering, sorting, and pagination
+ * Get multiple documents with optional filtering
  */
 export async function getDocuments<T>(
   collectionName: string,
-  constraints: QueryConstraint[] = [],
-  lastDoc?: DocumentSnapshot
+  queries: string[] = []
 ): Promise<T[]> {
   try {
-    let queryConstraints = [...constraints];
+    const response = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      getCollectionId(collectionName),
+      queries
+    );
     
-    if (lastDoc) {
-      queryConstraints.push(startAfter(lastDoc));
-    }
-    
-    const q = query(collection(db, collectionName), ...queryConstraints);
-    const querySnapshot = await getDocs(q);
-    
-    return querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })) as T[];
+    return response.documents.map(mapDocumentToType<T>);
   } catch (error) {
     console.error(`Error getting documents from ${collectionName}:`, error);
-    throw error;
-  }
-}
-
-/**
- * Get paginated documents
- */
-export async function getPaginatedDocuments<T>(
-  collectionName: string,
-  constraints: QueryConstraint[] = [],
-  pageSize: number = DEFAULT_VALUES.PAGINATION_LIMIT,
-  lastDoc?: DocumentSnapshot
-): Promise<PaginatedResponse<T> & { lastDoc?: DocumentSnapshot }> {
-  try {
-    const queryConstraints = [
-      ...constraints,
-      limit(pageSize + 1) // Get one extra to check if there's a next page
-    ];
-    
-    if (lastDoc) {
-      queryConstraints.push(startAfter(lastDoc));
-    }
-    
-    const q = query(collection(db, collectionName), ...queryConstraints);
-    const querySnapshot = await getDocs(q);
-    
-    const hasNext = querySnapshot.docs.length > pageSize;
-    const documents = querySnapshot.docs.slice(0, pageSize);
-    
-    return {
-      data: documents.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as T[],
-      pagination: {
-        page: 1, // This would need to be calculated based on actual implementation
-        limit: pageSize,
-        total: 0, // Would need separate count query
-        hasNext,
-        hasPrev: !!lastDoc
-      },
-      lastDoc: documents[documents.length - 1]
-    };
-  } catch (error) {
-    console.error(`Error getting paginated documents from ${collectionName}:`, error);
-    throw error;
+    return [];
   }
 }
 
@@ -202,39 +180,35 @@ export async function getPaginatedDocuments<T>(
 // ========================================
 
 export async function getUserById(userId: string): Promise<User | null> {
-  return getDocumentById<User>(COLLECTIONS.USERS, userId);
+  return userService.getUser(userId);
 }
 
-export async function createUser(userData: Omit<User, 'id'>): Promise<string> {
-  return createDocument<User>(COLLECTIONS.USERS, {
-    ...userData,
-    walletBalance: userData.walletBalance || DEFAULT_VALUES.WALLET_BALANCE,
-    isEmailVerified: userData.isEmailVerified || false
-  });
+export async function createUser(userData: Omit<User, 'id'> & { id: string }): Promise<void> {
+  await userService.createUser(userData);
 }
 
 export async function updateUser(userId: string, updates: Partial<User>): Promise<void> {
-  return updateDocument<User>(COLLECTIONS.USERS, userId, updates);
+  await userService.updateUser(userId, updates);
 }
 
 export async function getUsersByFilter(filters: UserFilters): Promise<User[]> {
-  const constraints: QueryConstraint[] = [];
+  const queries: string[] = [];
   
   if (filters.role) {
-    constraints.push(where('role', '==', filters.role));
+    queries.push(Query.equal('role', filters.role));
   }
   
   if (filters.universityName) {
-    constraints.push(where('universityName', '==', filters.universityName));
+    queries.push(Query.equal('universityName', filters.universityName));
   }
   
   if (filters.isEmailVerified !== undefined) {
-    constraints.push(where('isEmailVerified', '==', filters.isEmailVerified));
+    queries.push(Query.equal('isEmailVerified', filters.isEmailVerified));
   }
   
-  constraints.push(orderBy('createdAt', 'desc'));
+  queries.push(Query.orderDesc('$createdAt'));
   
-  return getDocuments<User>(COLLECTIONS.USERS, constraints);
+  return getDocuments<User>(COLLECTIONS.USERS, queries);
 }
 
 // ========================================
@@ -242,50 +216,39 @@ export async function getUsersByFilter(filters: UserFilters): Promise<User[]> {
 // ========================================
 
 export async function getVendorById(vendorId: string): Promise<Vendor | null> {
-  return getDocumentById<Vendor>(COLLECTIONS.VENDORS, vendorId);
+  return vendorService.getVendor(vendorId);
 }
 
-export async function createVendor(vendorData: Omit<Vendor, 'id'>): Promise<string> {
-  return createDocument<Vendor>(COLLECTIONS.VENDORS, {
-    ...vendorData,
-    rating: vendorData.rating || DEFAULT_VALUES.VENDOR_RATING,
-    reviewCount: vendorData.reviewCount || DEFAULT_VALUES.REVIEW_COUNT,
-    isOpen: vendorData.isOpen ?? true,
-    isApproved: vendorData.isApproved ?? false,
-    isSuspended: vendorData.isSuspended ?? false
-  });
+export async function createVendor(vendorData: Omit<Vendor, 'id'> & { id: string }): Promise<void> {
+  await vendorService.createVendor(vendorData);
 }
 
 export async function updateVendor(vendorId: string, updates: Partial<Vendor>): Promise<void> {
-  return updateDocument<Vendor>(COLLECTIONS.VENDORS, vendorId, updates);
+  await vendorService.updateVendor(vendorId, updates);
 }
 
 export async function getVendorsByFilter(filters: VendorFilters): Promise<Vendor[]> {
-  const constraints: QueryConstraint[] = [];
+  const queries: string[] = [];
   
   if (filters.isApproved !== undefined) {
-    constraints.push(where('isApproved', '==', filters.isApproved));
+    queries.push(Query.equal('isApproved', filters.isApproved));
   }
   
   if (filters.isOpen !== undefined) {
-    constraints.push(where('isOpen', '==', filters.isOpen));
+    queries.push(Query.equal('isOpen', filters.isOpen));
   }
   
   if (filters.isSuspended !== undefined) {
-    constraints.push(where('isSuspended', '==', filters.isSuspended));
+    queries.push(Query.equal('isSuspended', filters.isSuspended));
   }
   
   if (filters.universityName) {
-    constraints.push(where('universityName', '==', filters.universityName));
+    queries.push(Query.equal('universityName', filters.universityName));
   }
   
-  if (filters.category) {
-    constraints.push(where('categories', 'array-contains', filters.category));
-  }
+  queries.push(Query.orderDesc('$createdAt'));
   
-  constraints.push(orderBy('createdAt', 'desc'));
-  
-  return getDocuments<Vendor>(COLLECTIONS.VENDORS, constraints);
+  return getDocuments<Vendor>(COLLECTIONS.VENDORS, queries);
 }
 
 // ========================================
@@ -293,121 +256,56 @@ export async function getVendorsByFilter(filters: VendorFilters): Promise<Vendor
 // ========================================
 
 export async function getOrderById(orderId: string): Promise<Order | null> {
-  return getDocumentById<Order>(COLLECTIONS.ORDERS, orderId);
+  return orderService.getOrder(orderId);
 }
 
 export async function createOrder(orderData: Omit<Order, 'id'>): Promise<string> {
-  // Enrich order items with category information before creating the order
-  const enrichedOrderData = {
-    ...orderData,
-    items: await enrichOrderItemsWithCategories(orderData.vendorId, orderData.items)
-  };
-  
-  return createDocument<Order>(COLLECTIONS.ORDERS, enrichedOrderData);
-}
-
-/**
- * Enrich order items with category information from vendor menu
- */
-async function enrichOrderItemsWithCategories(vendorId: string, items: OrderItem[]): Promise<OrderItem[]> {
-  try {
-    // Get vendor menu structure
-    const menuRef = collection(db, COLLECTIONS.VENDORS, vendorId, 'menu');
-    const menuSnapshot = await getDocs(menuRef);
-    
-    // Build category mapping
-    const itemCategoryMap = new Map<string, string>();
-    
-    menuSnapshot.docs.forEach(doc => {
-      const menuData = doc.data();
-      
-      // Search through all categories in the menu
-      for (const [categoryName, categoryData] of Object.entries(menuData)) {
-        if (categoryData && typeof categoryData === 'object' && categoryData.Name) {
-          // This is a category object, search within its items
-          for (const [itemKey, itemData] of Object.entries(categoryData)) {
-            if (itemKey !== 'Name' && itemKey !== 'CID' && itemData && typeof itemData === 'object') {
-              const itemInfo = itemData as any;
-              const category = itemInfo.Category || categoryData.Name || categoryName;
-              
-              // Map by item ID and name for flexible matching
-              if (itemKey) itemCategoryMap.set(itemKey, category);
-              if (itemInfo.Name) itemCategoryMap.set(itemInfo.Name, category);
-              if (itemInfo.id) itemCategoryMap.set(itemInfo.id, category);
-            }
-          }
-        }
-      }
-    });
-    
-    // Enrich items with category information
-    return items.map(item => ({
-      ...item,
-      category: item.category || 
-                itemCategoryMap.get(item.id) || 
-                itemCategoryMap.get(item.name) || 
-                'Other'
-    }));
-    
-  } catch (error) {
-    console.error('Error enriching order items with categories:', error);
-    // Return items with default category if enrichment fails
-    return items.map(item => ({
-      ...item,
-      category: item.category || 'Other'
-    }));
-  }
+  const order = await orderService.createOrder(orderData);
+  return order.$id;
 }
 
 export async function updateOrder(orderId: string, updates: Partial<Order>): Promise<void> {
-  return updateDocument<Order>(COLLECTIONS.ORDERS, orderId, updates);
+  await orderService.updateOrder(orderId, updates);
 }
 
 export async function getOrdersByFilter(filters: OrderFilters): Promise<Order[]> {
-  const constraints: QueryConstraint[] = [];
+  const queries: string[] = [];
   
   if (filters.status) {
-    constraints.push(where('status', '==', filters.status));
+    queries.push(Query.equal('status', filters.status));
   }
   
   if (filters.vendorId) {
-    constraints.push(where('vendorId', '==', filters.vendorId));
+    queries.push(Query.equal('vendorId', filters.vendorId));
+  }
+  
+  if (filters.userId) {
+    queries.push(Query.equal('userId', filters.userId));
   }
   
   if (filters.paymentMethod) {
-    constraints.push(where('paymentMethod', '==', filters.paymentMethod));
+    queries.push(Query.equal('paymentMethod', filters.paymentMethod));
   }
   
-  if (filters.dateFrom || filters.dateTo) {
-    if (filters.dateFrom) {
-      constraints.push(where('createdAt', '>=', Timestamp.fromDate(filters.dateFrom)));
-    }
-    if (filters.dateTo) {
-      constraints.push(where('createdAt', '<=', Timestamp.fromDate(filters.dateTo)));
-    }
+  if (filters.dateFrom) {
+    queries.push(Query.greaterThanEqual('$createdAt', filters.dateFrom.toISOString()));
   }
   
-  constraints.push(orderBy('createdAt', 'desc'));
+  if (filters.dateTo) {
+    queries.push(Query.lessThanEqual('$createdAt', filters.dateTo.toISOString()));
+  }
   
-  return getDocuments<Order>(COLLECTIONS.ORDERS, constraints);
+  queries.push(Query.orderDesc('$createdAt'));
+  
+  return getDocuments<Order>(COLLECTIONS.ORDERS, queries);
 }
 
 export async function getUserOrders(userId: string): Promise<Order[]> {
-  const constraints = [
-    where('userId', '==', userId),
-    orderBy('createdAt', 'desc')
-  ];
-  
-  return getDocuments<Order>(COLLECTIONS.ORDERS, constraints);
+  return orderService.getOrdersByUser(userId);
 }
 
 export async function getVendorOrders(vendorId: string): Promise<Order[]> {
-  const constraints = [
-    where('vendorId', '==', vendorId),
-    orderBy('createdAt', 'desc')
-  ];
-  
-  return getDocuments<Order>(COLLECTIONS.ORDERS, constraints);
+  return orderService.getOrdersByVendor(vendorId);
 }
 
 // ========================================
@@ -419,15 +317,11 @@ export async function getUniversityById(universityId: string): Promise<Universit
 }
 
 export async function getAllUniversities(): Promise<University[]> {
-  const constraints = [orderBy('name', 'asc')];
-  return getDocuments<University>(COLLECTIONS.UNIVERSITIES, constraints);
+  return getDocuments<University>(COLLECTIONS.UNIVERSITIES, [Query.orderAsc('name')]);
 }
 
 export async function createUniversity(universityData: Omit<University, 'id'>): Promise<string> {
-  return createDocument<University>(COLLECTIONS.UNIVERSITIES, {
-    ...universityData,
-    isActive: universityData.isActive ?? true
-  });
+  return createDocument<University>(COLLECTIONS.UNIVERSITIES, universityData);
 }
 
 // ========================================
@@ -447,21 +341,17 @@ export async function updateComplaint(complaintId: string, updates: Partial<Comp
 }
 
 export async function getUserComplaints(userId: string): Promise<Complaint[]> {
-  const constraints = [
-    where('userId', '==', userId),
-    orderBy('createdAt', 'desc')
-  ];
-  
-  return getDocuments<Complaint>(COLLECTIONS.COMPLAINTS, constraints);
+  return getDocuments<Complaint>(COLLECTIONS.COMPLAINTS, [
+    Query.equal('userId', userId),
+    Query.orderDesc('$createdAt')
+  ]);
 }
 
 export async function getVendorComplaints(vendorId: string): Promise<Complaint[]> {
-  const constraints = [
-    where('vendorId', '==', vendorId),
-    orderBy('createdAt', 'desc')
-  ];
-  
-  return getDocuments<Complaint>(COLLECTIONS.COMPLAINTS, constraints);
+  return getDocuments<Complaint>(COLLECTIONS.COMPLAINTS, [
+    Query.equal('vendorId', vendorId),
+    Query.orderDesc('$createdAt')
+  ]);
 }
 
 // ========================================
@@ -473,12 +363,10 @@ export async function createNotification(notificationData: Omit<Notification, 'i
 }
 
 export async function getUserNotifications(userId: string): Promise<Notification[]> {
-  const constraints = [
-    where('userId', '==', userId),
-    orderBy('createdAt', 'desc')
-  ];
-  
-  return getDocuments<Notification>(COLLECTIONS.NOTIFICATIONS, constraints);
+  return getDocuments<Notification>(COLLECTIONS.NOTIFICATIONS, [
+    Query.equal('userId', userId),
+    Query.orderDesc('$createdAt')
+  ]);
 }
 
 export async function markNotificationAsRead(notificationId: string): Promise<void> {
@@ -489,103 +377,131 @@ export async function markNotificationAsRead(notificationId: string): Promise<vo
 }
 
 // ========================================
-// Transaction Operations
-// ========================================
-
-export async function createTransaction(transactionData: Omit<Transaction, 'id'>): Promise<string> {
-  return createDocument<Transaction>(COLLECTIONS.TRANSACTIONS, transactionData);
-}
-
-export async function updateTransaction(transactionId: string, updates: Partial<Transaction>): Promise<void> {
-  return updateDocument<Transaction>(COLLECTIONS.TRANSACTIONS, transactionId, updates);
-}
-
-export async function getUserTransactions(userId: string): Promise<Transaction[]> {
-  const constraints = [
-    where('userId', '==', userId),
-    orderBy('createdAt', 'desc')
-  ];
-  
-  return getDocuments<Transaction>(COLLECTIONS.TRANSACTIONS, constraints);
-}
-
-// ========================================
-// Search Operations
+// Helper Functions
 // ========================================
 
 /**
- * Search users by name or email
+ * Map collection name to Appwrite collection ID
  */
-export async function searchUsers(searchTerm: string, filters?: UserFilters): Promise<User[]> {
-  // Note: Firestore doesn't support full-text search natively
-  // This is a basic implementation that should be enhanced with
-  // a proper search solution like Algolia or Elasticsearch
+function getCollectionId(collectionName: string): string {
+  const collectionMap: Record<string, string> = {
+    users: appwriteConfig.usersCollectionId,
+    vendors: appwriteConfig.vendorsCollectionId,
+    orders: appwriteConfig.ordersCollectionId,
+    universities: appwriteConfig.universitiesCollectionId,
+    complaints: appwriteConfig.complaintsCollectionId,
+    notifications: appwriteConfig.notificationsCollectionId
+  };
   
-  const constraints: QueryConstraint[] = [];
+  return collectionMap[collectionName] || collectionName;
+}
+
+/**
+ * Map Appwrite document to typed object
+ */
+function mapDocumentToType<T>(doc: any): T {
+  const { $id, $createdAt, $updatedAt, ...data } = doc;
+  return {
+    id: $id,
+    ...data,
+    createdAt: $createdAt ? new Date($createdAt) : undefined,
+    updatedAt: $updatedAt ? new Date($updatedAt) : undefined
+  } as T;
+}
+
+// ========================================
+// Firebase Compatibility Functions
+// ========================================
+
+/**
+ * Firebase-compatible timestamp
+ */
+export const Timestamp = {
+  now: () => ({
+    toDate: () => new Date(),
+    seconds: Math.floor(Date.now() / 1000),
+    nanoseconds: 0,
+    toMillis: () => Date.now(),
+    toJSON: () => ({ 
+      seconds: Math.floor(Date.now() / 1000), 
+      nanoseconds: 0,
+      type: 'timestamp'
+    }),
+    isEqual: (other: any) => Date.now() === other.toMillis(),
+    valueOf: () => new Date().toISOString()
+  }),
+  fromDate: (date: Date) => ({
+    toDate: () => date,
+    seconds: Math.floor(date.getTime() / 1000),
+    nanoseconds: 0,
+    toMillis: () => date.getTime(),
+    toJSON: () => ({ 
+      seconds: Math.floor(date.getTime() / 1000), 
+      nanoseconds: 0,
+      type: 'timestamp'
+    }),
+    isEqual: (other: any) => date.getTime() === other.toMillis(),
+    valueOf: () => date.toISOString()
+  }),
+  fromMillis: (millis: number) => ({
+    toDate: () => new Date(millis),
+    seconds: Math.floor(millis / 1000),
+    nanoseconds: 0,
+    toMillis: () => millis,
+    toJSON: () => ({ 
+      seconds: Math.floor(millis / 1000), 
+      nanoseconds: 0,
+      type: 'timestamp'
+    }),
+    isEqual: (other: any) => millis === other.toMillis(),
+    valueOf: () => new Date(millis).toISOString()
+  })
+};
+
+/**
+ * Firebase-compatible serverTimestamp
+ */
+export const serverTimestamp = () => Timestamp.now();
+
+// ========================================
+// Search Operations (Basic Implementation)
+// ========================================
+
+export async function searchUsers(searchTerm: string, filters?: UserFilters): Promise<User[]> {
+  // Get all users and filter client-side (Appwrite search is limited)
+  const queries: string[] = [];
   
   if (filters?.role) {
-    constraints.push(where('role', '==', filters.role));
+    queries.push(Query.equal('role', filters.role));
   }
   
   if (filters?.universityName) {
-    constraints.push(where('universityName', '==', filters.universityName));
+    queries.push(Query.equal('universityName', filters.universityName));
   }
   
-  constraints.push(orderBy('fullName'));
+  const users = await getDocuments<User>(COLLECTIONS.USERS, queries);
   
-  const users = await getDocuments<User>(COLLECTIONS.USERS, constraints);
-  
-  // Client-side filtering for search term
   return users.filter(user => 
     user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 }
 
-/**
- * Search vendors by name or description
- */
 export async function searchVendors(searchTerm: string, filters?: VendorFilters): Promise<Vendor[]> {
-  const constraints: QueryConstraint[] = [];
+  const queries: string[] = [];
   
   if (filters?.universityName) {
-    constraints.push(where('universityName', '==', filters.universityName));
+    queries.push(Query.equal('universityName', filters.universityName));
   }
   
   if (filters?.isApproved !== undefined) {
-    constraints.push(where('isApproved', '==', filters.isApproved));
+    queries.push(Query.equal('isApproved', filters.isApproved));
   }
   
-  constraints.push(orderBy('name'));
+  const vendors = await getDocuments<Vendor>(COLLECTIONS.VENDORS, queries);
   
-  const vendors = await getDocuments<Vendor>(COLLECTIONS.VENDORS, constraints);
-  
-  // Client-side filtering for search term
   return vendors.filter(vendor => 
     vendor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     vendor.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
-}
-
-// ========================================
-// Batch Operations
-// ========================================
-
-/**
- * Update multiple documents in a batch
- */
-export async function batchUpdateDocuments<T>(
-  collectionName: string,
-  updates: { id: string; data: Partial<T> }[]
-): Promise<void> {
-  try {
-    // Note: This would use Firestore batch operations in a real implementation
-    // For now, we'll do sequential updates
-    for (const update of updates) {
-      await updateDocument(collectionName, update.id, update.data);
-    }
-  } catch (error) {
-    console.error(`Error in batch update for ${collectionName}:`, error);
-    throw error;
-  }
 }
