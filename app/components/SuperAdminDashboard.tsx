@@ -961,7 +961,10 @@ export function SuperAdminDashboard() {
       <Dialog open={showUserProfileModal} onOpenChange={(open) => {
         setShowUserProfileModal(open);
         if (!open) {
-          setSelectedUserDetails(null);
+          // Only clear selectedUserDetails if this is the only modal open
+          if (!showUserOrdersModal && !showRoleChangeModal) {
+            setSelectedUserDetails(null);
+          }
         }
       }}>
         <DialogContent className="max-w-2xl">
@@ -1052,8 +1055,11 @@ export function SuperAdminDashboard() {
       <Dialog open={showUserOrdersModal} onOpenChange={(open) => {
         setShowUserOrdersModal(open);
         if (!open) {
-          setSelectedUserDetails(null);
           setSelectedUserOrders([]);
+          // Only clear selectedUserDetails if this is the only modal open
+          if (!showUserProfileModal && !showRoleChangeModal) {
+            setSelectedUserDetails(null);
+          }
         }
       }}>
         <DialogContent className="max-w-4xl">
@@ -1124,8 +1130,11 @@ export function SuperAdminDashboard() {
       <Dialog open={showRoleChangeModal} onOpenChange={(open) => {
         setShowRoleChangeModal(open);
         if (!open) {
-          setSelectedUserDetails(null);
           setNewUserRole('');
+          // Only clear selectedUserDetails if this is the only modal open
+          if (!showUserProfileModal && !showUserOrdersModal) {
+            setSelectedUserDetails(null);
+          }
         }
       }}>
         <DialogContent>
