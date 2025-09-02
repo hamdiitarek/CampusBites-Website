@@ -24,7 +24,9 @@ import {
   Phone
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/(landing)/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/(landing)/components/ui/dialog';
 import { SuperAdminService } from '@/lib/appwriteSuperAdminService';
+import { dashboardCache } from '@/lib/dashboardCache';
 import type { VendorData } from '@/lib/models';
 import { useToast } from '@/hooks/use-toast';
 
@@ -50,6 +52,10 @@ export function VendorsManagement() {
     pending: 0,
     suspended: 0
   });
+
+  // Vendor details modal state
+  const [selectedVendorDetails, setSelectedVendorDetails] = useState<VendorData | null>(null);
+  const [showVendorDetailsModal, setShowVendorDetailsModal] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -136,11 +142,15 @@ export function VendorsManagement() {
 
   const handleUpdateVendorApproval = async (vendorId: string, isApproved: boolean) => {
     try {
-      await SuperAdminService.updateVendorApproval(vendorId, isApproved);
+      const status = isApproved ? 'approved' : 'rejected';
+      await SuperAdminService.updateVendorStatus(vendorId, status);
       toast({
         title: 'Success',
         description: `Vendor ${isApproved ? 'approved' : 'rejected'} successfully`
       });
+      
+      // Clear cache and refresh data
+      dashboardCache.clear();
       loadData();
     } catch (error) {
       console.error('Error updating vendor approval:', error);
@@ -153,10 +163,11 @@ export function VendorsManagement() {
   };
 
   const handleViewVendor = (vendorId: string) => {
-    toast({
-      title: 'Coming Soon',
-      description: 'Vendor profile view will be implemented'
-    });
+    const vendor = vendors.find(v => v.id === vendorId);
+    if (vendor) {
+      setSelectedVendorDetails(vendor);
+      setShowVendorDetailsModal(true);
+    }
   };
 
   const handleEditVendor = (vendorId: string) => {
@@ -166,11 +177,38 @@ export function VendorsManagement() {
     });
   };
 
-  const handleSuspendVendor = (vendorId: string) => {
-    toast({
-      title: 'Coming Soon',
-      description: 'Vendor suspension functionality will be implemented'
-    });
+  const handleSuspendVendor = async (vendorId: string) => {
+    try {
+      const vendor = vendors.find(v => v.id === vendorId);
+      if (!vendor) return;
+
+      if (vendor.isSuspended) {
+        // Reactivate vendor by approving
+        await SuperAdminService.updateVendorStatus(vendorId, 'approved');
+        toast({
+          title: 'Success',
+          description: 'Vendor has been reactivated successfully'
+        });
+      } else {
+        // Suspend vendor
+        await SuperAdminService.updateVendorStatus(vendorId, 'suspended', 'Suspended by admin');
+        toast({
+          title: 'Success',
+          description: 'Vendor has been suspended successfully'
+        });
+      }
+      
+      // Clear cache and refresh data
+      dashboardCache.clear();
+      loadData();
+    } catch (error) {
+      console.error('Error updating vendor status:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update vendor status',
+        variant: 'destructive'
+      });
+    }
   };
 
   const getStatusBadge = (vendor: VendorData) => {
@@ -437,6 +475,119 @@ export function VendorsManagement() {
           )}
         </CardContent>
       </Card>
+
+      {/* Vendor Details Modal */}
+      <Dialog open={showVendorDetailsModal} onOpenChange={setShowVendorDetailsModal}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Vendor Details</DialogTitle>
+            <DialogDescription>
+              Detailed information about the selected vendor
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedVendorDetails && (
+            <div className="space-y-6">
+              {/* Basic Information */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Vendor Name</label>
+                  <p className="text-sm text-gray-600">{selectedVendorDetails.name}</p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Category</label>
+                  <p className="text-sm text-gray-600">{selectedVendorDetails.categories?.join(', ') || 'N/A'}</p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">University</label>
+                  <p className="text-sm text-gray-600">{selectedVendorDetails.universityName}</p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Phone</label>
+                  <p className="text-sm text-gray-600">N/A</p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Location</label>
+                  <p className="text-sm text-gray-600">N/A</p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Rating</label>
+                  <div className="flex items-center space-x-1">
+                    <Star className="h-4 w-4 text-yellow-400" />
+                    <span className="text-sm text-gray-600">{selectedVendorDetails.rating || 'N/A'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Description</label>
+                <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
+                  {selectedVendorDetails.description || 'No description available'}
+                </p>
+              </div>
+
+              {/* Status Information */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Status Information</h3>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className={selectedVendorDetails.isApproved ? 'h-4 w-4 text-green-600' : 'h-4 w-4 text-gray-400'} />
+                    <span className="text-sm">Approved</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Ban className={selectedVendorDetails.isSuspended ? 'h-4 w-4 text-red-600' : 'h-4 w-4 text-gray-400'} />
+                    <span className="text-sm">Suspended</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Store className={selectedVendorDetails.isOpen ? 'h-4 w-4 text-green-600' : 'h-4 w-4 text-gray-400'} />
+                    <span className="text-sm">Currently Open</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end space-x-2 pt-4 border-t">
+                <Button variant="outline" onClick={() => setShowVendorDetailsModal(false)}>
+                  Close
+                </Button>
+                <Button variant="outline" onClick={() => handleEditVendor(selectedVendorDetails.id)}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Vendor
+                </Button>
+                {!selectedVendorDetails.isApproved && (
+                  <Button 
+                    variant="outline" 
+                    className="text-green-600 border-green-600 hover:bg-green-50"
+                    onClick={() => handleUpdateVendorApproval(selectedVendorDetails.id, true)}
+                  >
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Approve
+                  </Button>
+                )}
+                {selectedVendorDetails.isApproved && (
+                  <Button 
+                    variant="outline" 
+                    className="text-red-600 border-red-600 hover:bg-red-50"
+                    onClick={() => handleUpdateVendorApproval(selectedVendorDetails.id, false)}
+                  >
+                    <XCircle className="h-4 w-4 mr-2" />
+                    Reject
+                  </Button>
+                )}
+                <Button 
+                  variant="outline" 
+                  className={selectedVendorDetails.isSuspended ? "text-green-600 border-green-600 hover:bg-green-50" : "text-red-600 border-red-600 hover:bg-red-50"}
+                  onClick={() => handleSuspendVendor(selectedVendorDetails.id)}
+                >
+                  <Ban className="h-4 w-4 mr-2" />
+                  {selectedVendorDetails.isSuspended ? 'Reactivate' : 'Suspend'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

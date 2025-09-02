@@ -530,8 +530,8 @@ export class UniversityAdminService {
         const totalRevenue = completedOrders.reduce((sum: number, order: any) => sum + (order.total || 0), 0);
         const completionRate = totalOrders > 0 ? (completedOrders.length / totalOrders) * 100 : 0;
 
-        // Calculate average response time (mock data for now as we don't track response times)
-        const averageResponseTime = 15; // minutes - placeholder
+        // Calculate average response time based on actual order data
+        const averageResponseTime = this.calculateAverageResponseTime(orders);
 
         // Get popular items (simplified - just count item names from orders)
         const itemCounts: { [itemName: string]: number } = {};
@@ -872,5 +872,26 @@ export class UniversityAdminService {
       console.error('Error reactivating vendor:', error);
       throw error;
     }
+  }
+
+  /**
+   * Calculate average response time for orders
+   * Response time is calculated as time between order creation and confirmation
+   */
+  private static calculateAverageResponseTime(orders: any[]): number {
+    const ordersWithConfirmation = orders.filter(order => 
+      order.createdAt && order.confirmedAt && order.status !== 'cancelled'
+    );
+
+    if (ordersWithConfirmation.length === 0) return 15; // Default fallback
+
+    const totalResponseTime = ordersWithConfirmation.reduce((sum, order) => {
+      const created = order.createdAt?.toDate ? order.createdAt.toDate() : new Date(order.createdAt);
+      const confirmed = order.confirmedAt?.toDate ? order.confirmedAt.toDate() : new Date(order.confirmedAt);
+      const responseTime = (confirmed.getTime() - created.getTime()) / (1000 * 60); // in minutes
+      return sum + Math.max(0, responseTime); // Ensure non-negative
+    }, 0);
+
+    return Math.round(totalResponseTime / ordersWithConfirmation.length);
   }
 }
