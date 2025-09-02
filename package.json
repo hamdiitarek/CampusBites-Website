@@ -27,7 +27,8 @@
     "appwrite:demo": "node scripts/setup_demo_data_appwrite.cjs setup",
     "appwrite:demo-clean": "node scripts/setup_demo_data_appwrite.cjs clean",
     "appwrite:demo-reset": "node scripts/setup_demo_data_appwrite.cjs reset",
-    "auth:verify": "node scripts/verifyAuthMigration.cjs"
+    "auth:verify": "node scripts/verifyAuthMigration.cjs",
+    "cors:verify": "node scripts/verifyCorsConfiguration.cjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

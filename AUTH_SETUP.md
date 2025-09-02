@@ -6,7 +6,15 @@ This application uses Appwrite for authentication with role-based access control
 
 1. Create an account at [Appwrite Cloud](https://cloud.appwrite.io)
 2. Create a new project
-3. Copy your project details to `.env.local`
+3. **Configure Platform (Important for CORS)**:
+   - Go to **Settings** > **Platforms**
+   - Add Web Platform:
+     - **Name**: CampusBites Development
+     - **Hostname**: localhost (for development)
+   - For production, add another platform:
+     - **Name**: CampusBites Production  
+     - **Hostname**: www.campusbites.app
+4. Copy your project details to `.env.local`
 
 ## 2. Environment Variables
 
@@ -98,7 +106,23 @@ The authentication is integrated with:
 
 ## Next Steps
 
-1. Set up your Appwrite project
+1. Set up your Appwrite project with correct platform configuration
 2. Configure environment variables
 3. Test login/registration flows
-4. Create role-specific dashboard pages
+4. For production deployment, see `APPWRITE_PRODUCTION_SETUP.md`
+5. Use `npm run cors:verify` to check CORS configuration
+
+## Troubleshooting
+
+### CORS Errors
+If you see "blocked by CORS policy" errors:
+- Check that your Appwrite platform hostname matches your domain exactly
+- For localhost development: use `localhost` (not `127.0.0.1`)
+- For production: use your actual domain (e.g., `www.campusbites.app`)
+- Run: `npm run cors:verify` for automated checking
+
+### Authentication Issues
+- Verify project ID is correct in environment variables
+- Check network connectivity to Appwrite
+- Clear browser cache and cookies
+- Try incognito/private browsing mode
