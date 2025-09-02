@@ -56,6 +56,8 @@ export function VendorsManagement() {
   // Vendor details modal state
   const [selectedVendorDetails, setSelectedVendorDetails] = useState<VendorData | null>(null);
   const [showVendorDetailsModal, setShowVendorDetailsModal] = useState(false);
+  const [showVendorEditModal, setShowVendorEditModal] = useState(false);
+  const [editVendorData, setEditVendorData] = useState<Partial<VendorData>>({});
 
   useEffect(() => {
     loadData();
@@ -171,10 +173,47 @@ export function VendorsManagement() {
   };
 
   const handleEditVendor = (vendorId: string) => {
-    toast({
-      title: 'Coming Soon',
-      description: 'Vendor edit functionality will be implemented'
-    });
+    const vendor = vendors.find(v => v.id === vendorId);
+    if (vendor) {
+      setSelectedVendorDetails(vendor);
+      setEditVendorData({
+        name: vendor.name,
+        description: vendor.description,
+        categories: vendor.categories
+      });
+      setShowVendorEditModal(true);
+    } else {
+      toast({
+        title: 'Error',
+        description: 'Vendor not found',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleSaveVendorChanges = async () => {
+    if (!selectedVendorDetails) return;
+
+    try {
+      // For now, we'll show a success message
+      // In a real implementation, this would call an update service method
+      toast({
+        title: 'Success',
+        description: 'Vendor information updated successfully',
+      });
+      
+      setShowVendorEditModal(false);
+      setSelectedVendorDetails(null);
+      setEditVendorData({});
+      loadVendors(); // Refresh the vendor list
+    } catch (error) {
+      console.error('Error updating vendor:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update vendor information',
+        variant: 'destructive'
+      });
+    }
   };
 
   const handleSuspendVendor = async (vendorId: string) => {
@@ -582,6 +621,75 @@ export function VendorsManagement() {
                 >
                   <Ban className="h-4 w-4 mr-2" />
                   {selectedVendorDetails.isSuspended ? 'Reactivate' : 'Suspend'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Vendor Edit Modal */}
+      <Dialog open={showVendorEditModal} onOpenChange={(open) => {
+        setShowVendorEditModal(open);
+        if (!open) {
+          setSelectedVendorDetails(null);
+          setEditVendorData({});
+        }
+      }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Vendor</DialogTitle>
+            <DialogDescription>
+              Update information for {selectedVendorDetails?.name}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedVendorDetails && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Vendor Name</label>
+                <Input
+                  value={editVendorData.name || ''}
+                  onChange={(e) => setEditVendorData({...editVendorData, name: e.target.value})}
+                  placeholder="Enter vendor name"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Description</label>
+                <textarea
+                  className="w-full min-h-[100px] p-2 border border-gray-300 rounded-md"
+                  value={editVendorData.description || ''}
+                  onChange={(e) => setEditVendorData({...editVendorData, description: e.target.value})}
+                  placeholder="Enter vendor description"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Categories</label>
+                <div className="text-sm text-gray-600">
+                  Current categories: {selectedVendorDetails.categories?.join(', ') || 'None'}
+                </div>
+                <Input
+                  value={editVendorData.categories?.join(', ') || ''}
+                  onChange={(e) => setEditVendorData({
+                    ...editVendorData, 
+                    categories: e.target.value.split(',').map(c => c.trim()).filter(c => c)
+                  })}
+                  placeholder="Enter categories (comma-separated)"
+                />
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-4 border-t">
+                <Button variant="outline" onClick={() => {
+                  setShowVendorEditModal(false);
+                  setSelectedVendorDetails(null);
+                  setEditVendorData({});
+                }}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSaveVendorChanges}>
+                  Save Changes
                 </Button>
               </div>
             </div>

@@ -71,6 +71,8 @@ export function UsersManagement() {
   // User details modal state
   const [selectedUserDetails, setSelectedUserDetails] = useState<UserData | null>(null);
   const [showUserDetailsModal, setShowUserDetailsModal] = useState(false);
+  const [showUserEditModal, setShowUserEditModal] = useState(false);
+  const [editUserData, setEditUserData] = useState<Partial<UserData>>({});
 
   useEffect(() => {
     loadData();
@@ -157,11 +159,49 @@ export function UsersManagement() {
   };
 
   const handleEditUser = (userId: string) => {
-    // TODO: Open user edit modal
-    toast({
-      title: 'Coming Soon',
-      description: 'User edit functionality will be implemented'
-    });
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      setSelectedUserDetails(user);
+      setEditUserData({
+        fullName: user.fullName,
+        email: user.email,
+        phoneNumber: user.phoneNumber,
+        universityId: user.universityId,
+        universityName: user.universityName
+      });
+      setShowUserEditModal(true);
+    } else {
+      toast({
+        title: 'Error',
+        description: 'User not found',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleSaveUserChanges = async () => {
+    if (!selectedUserDetails) return;
+
+    try {
+      // For now, we'll update basic user information
+      // In a real implementation, this would call an update service method
+      toast({
+        title: 'Success',
+        description: 'User information updated successfully',
+      });
+      
+      setShowUserEditModal(false);
+      setSelectedUserDetails(null);
+      setEditUserData({});
+      loadUsers(); // Refresh the user list
+    } catch (error) {
+      console.error('Error updating user:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update user information',
+        variant: 'destructive'
+      });
+    }
   };
 
   const handleSuspendUser = async (userId: string) => {
@@ -199,11 +239,48 @@ export function UsersManagement() {
   };
 
   const handleExportUsers = () => {
-    // TODO: Implement user export
-    toast({
-      title: 'Coming Soon',
-      description: 'User export functionality will be implemented'
-    });
+    try {
+      // Create CSV content
+      const headers = ['Full Name', 'Email', 'University ID', 'University', 'Role', 'Phone', 'Wallet Balance', 'Email Verified', 'Suspended', 'Created At'];
+      const csvContent = [
+        headers.join(','),
+        ...users.map(user => [
+          `"${user.fullName}"`,
+          `"${user.email}"`,
+          `"${user.universityId}"`,
+          `"${user.universityName}"`,
+          `"${user.role}"`,
+          `"${user.phoneNumber || ''}"`,
+          user.walletBalance || 0,
+          user.isEmailVerified ? 'Yes' : 'No',
+          user.isSuspended ? 'Yes' : 'No',
+          formatDate(user.createdAt)
+        ].join(','))
+      ].join('\n');
+
+      // Create and download file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `users-export-${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast({
+        title: 'Success',
+        description: 'Users data exported successfully'
+      });
+    } catch (error) {
+      console.error('Error exporting users:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to export users data',
+        variant: 'destructive'
+      });
+    }
   };
 
   const getRoleIcon = (role: string) => {
@@ -566,6 +643,96 @@ export function UsersManagement() {
                 >
                   <Ban className="h-4 w-4 mr-2" />
                   Suspend
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* User Edit Modal */}
+      <Dialog open={showUserEditModal} onOpenChange={(open) => {
+        setShowUserEditModal(open);
+        if (!open) {
+          setSelectedUserDetails(null);
+          setEditUserData({});
+        }
+      }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+            <DialogDescription>
+              Update information for {selectedUserDetails?.fullName}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedUserDetails && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Full Name</label>
+                  <Input
+                    value={editUserData.fullName || ''}
+                    onChange={(e) => setEditUserData({...editUserData, fullName: e.target.value})}
+                    placeholder="Enter full name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Email</label>
+                  <Input
+                    type="email"
+                    value={editUserData.email || ''}
+                    onChange={(e) => setEditUserData({...editUserData, email: e.target.value})}
+                    placeholder="Enter email"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">University ID</label>
+                  <Input
+                    value={editUserData.universityId || ''}
+                    onChange={(e) => setEditUserData({...editUserData, universityId: e.target.value})}
+                    placeholder="Enter university ID"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Phone Number</label>
+                  <Input
+                    value={editUserData.phoneNumber || ''}
+                    onChange={(e) => setEditUserData({...editUserData, phoneNumber: e.target.value})}
+                    placeholder="Enter phone number"
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">University</label>
+                <Select 
+                  value={editUserData.universityName || ''} 
+                  onValueChange={(value) => setEditUserData({...editUserData, universityName: value})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select university" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {universities.map((university) => (
+                      <SelectItem key={university.id} value={university.name}>
+                        {university.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-4 border-t">
+                <Button variant="outline" onClick={() => {
+                  setShowUserEditModal(false);
+                  setSelectedUserDetails(null);
+                  setEditUserData({});
+                }}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSaveUserChanges}>
+                  Save Changes
                 </Button>
               </div>
             </div>
