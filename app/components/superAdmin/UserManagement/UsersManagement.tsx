@@ -564,7 +564,12 @@ export function UsersManagement() {
       </Card>
 
       {/* User Details Modal */}
-      <Dialog open={showUserDetailsModal} onOpenChange={setShowUserDetailsModal}>
+      <Dialog open={showUserDetailsModal} onOpenChange={(open) => {
+        setShowUserDetailsModal(open);
+        if (!open) {
+          setSelectedUserDetails(null);
+        }
+      }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>User Details</DialogTitle>
@@ -629,7 +634,10 @@ export function UsersManagement() {
 
               {/* Action Buttons */}
               <div className="flex justify-end space-x-2 pt-4 border-t">
-                <Button variant="outline" onClick={() => setShowUserDetailsModal(false)}>
+                <Button variant="outline" onClick={() => {
+                  setShowUserDetailsModal(false);
+                  setSelectedUserDetails(null);
+                }}>
                   Close
                 </Button>
                 <Button variant="outline" onClick={() => handleEditUser(selectedUserDetails.id)}>
