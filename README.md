@@ -309,6 +309,45 @@ Production build generates:
 - **Social Media**: Open Graph and Twitter Card meta tags
 - **Schema.org**: Structured data for search engines
 
+## 🛠 Troubleshooting
+
+### CORS Issues (Production)
+
+If you see CORS errors like:
+```
+Access to fetch at 'https://cloud.appwrite.io/v1/account/sessions/current' from origin 'https://www.campusbites.app' has been blocked by CORS policy
+```
+
+**Quick Fix**:
+1. Run the CORS verification tool:
+   ```bash
+   npm run cors:verify
+   ```
+
+2. Follow the detailed guide: `APPWRITE_PRODUCTION_SETUP.md`
+
+3. Update Appwrite platform configuration:
+   - Go to Appwrite Console > Settings > Platforms
+   - Add/edit Web platform with your production domain
+   - Remove localhost platforms for production
+
+### Common Issues
+
+**Authentication not working**:
+- Check environment variables are set correctly
+- Verify Appwrite project ID and endpoint
+- Clear browser cache and cookies
+
+**Build failures**:
+- Ensure Node.js version 18+
+- Clear node_modules and reinstall: `rm -rf node_modules && npm install`
+- Check for TypeScript errors: `npm run type-check`
+
+**Docker issues**:
+- Check Docker daemon is running
+- Verify port 3000 is available
+- Review container logs: `docker logs campusbites-container`
+
 ## 🧪 Development Tools
 
 ```bash
@@ -323,6 +362,9 @@ bun run analyze
 
 # Bundle size analysis
 bun run build && bun run start
+
+# CORS configuration check
+npm run cors:verify
 ```
 
 ## 📚 Additional Resources
