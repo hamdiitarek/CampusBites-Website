@@ -4,8 +4,8 @@
  * This script creates demo data for all tables in Appwrite collections
  */
 
-import { Client, Databases, Account, ID } from 'node-appwrite';
-import dotenv from 'dotenv';
+const { Client, Databases, Account, ID } = require('node-appwrite');
+const dotenv = require('dotenv');
 
 // Load environment variables
 dotenv.config({ path: '.env.local' });
