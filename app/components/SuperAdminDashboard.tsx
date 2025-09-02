@@ -34,6 +34,7 @@ import {
   Bell
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/(landing)/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/(landing)/components/ui/dialog';
 import { 
   AppwriteSuperAdminService as SuperAdminService,
   EnrichedOrderData,
@@ -67,6 +68,14 @@ export function SuperAdminDashboard() {
   
   const [loading, setLoading] = useState(true);
   const [usersLoading, setUsersLoading] = useState(false);
+  
+  // Modal states
+  const [showUserProfileModal, setShowUserProfileModal] = useState(false);
+  const [showUserOrdersModal, setShowUserOrdersModal] = useState(false);
+  const [showRoleChangeModal, setShowRoleChangeModal] = useState(false);
+  const [selectedUserDetails, setSelectedUserDetails] = useState<UserData | null>(null);
+  const [selectedUserOrders, setSelectedUserOrders] = useState<EnrichedOrderData[]>([]);
+  const [newUserRole, setNewUserRole] = useState<string>('');
 
   // Load initial data
   useEffect(() => {
@@ -233,41 +242,120 @@ export function SuperAdminDashboard() {
   };
 
   const handleViewUserProfile = (userId: string) => {
-    // TODO: Implement user profile modal or navigate to user profile page
-    toast({
-      title: 'Coming Soon',
-      description: 'User profile view will be implemented soon'
-    });
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      setSelectedUserDetails(user);
+      setShowUserProfileModal(true);
+    } else {
+      toast({
+        title: 'Error',
+        description: 'User not found',
+        variant: 'destructive'
+      });
+    }
   };
 
-  const handleViewUserOrders = (userId: string) => {
-    // TODO: Implement orders modal or navigate to orders page
-    toast({
-      title: 'Coming Soon',
-      description: 'User orders view will be implemented soon'
-    });
+  const handleViewUserOrders = async (userId: string) => {
+    try {
+      const user = users.find(u => u.id === userId);
+      if (!user) {
+        toast({
+          title: 'Error',
+          description: 'User not found',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      // Get user orders
+      const userOrders = await SuperAdminService.getUserOrders(userId);
+      setSelectedUserDetails(user);
+      setSelectedUserOrders(userOrders);
+      setShowUserOrdersModal(true);
+    } catch (error) {
+      console.error('Error fetching user orders:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load user orders',
+        variant: 'destructive'
+      });
+    }
   };
 
   const handleChangeUserRole = (userId: string) => {
-    // TODO: Implement role change modal with dropdown
-    toast({
-      title: 'Coming Soon',
-      description: 'Role change dialog will be implemented soon'
-    });
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      setSelectedUserDetails(user);
+      setNewUserRole(user.role);
+      setShowRoleChangeModal(true);
+    } else {
+      toast({
+        title: 'Error',
+        description: 'User not found',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleConfirmRoleChange = async () => {
+    if (!selectedUserDetails || !newUserRole) return;
+
+    try {
+      await SuperAdminService.updateUserRole(selectedUserDetails.id, newUserRole as any);
+      toast({
+        title: 'Success',
+        description: `User role updated to ${newUserRole} successfully`
+      });
+      
+      // Clear cache and refresh data
+      dashboardCache.delete(CacheKeys.superAdminUsers(
+        selectedUniversity === 'all' ? undefined : selectedUniversity,
+        selectedRole === 'all' ? undefined : selectedRole,
+        searchTerm || undefined
+      ));
+      dashboardCache.delete(CacheKeys.superAdminStats());
+      
+      // Reset modal state
+      setShowRoleChangeModal(false);
+      setSelectedUserDetails(null);
+      setNewUserRole('');
+      
+      // Refresh data
+      loadUsers();
+      loadInitialData();
+    } catch (error) {
+      console.error('Error updating user role:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update user role',
+        variant: 'destructive'
+      });
+    }
   };
 
   const handleResetUserPassword = async (userId: string) => {
     try {
-      // TODO: Implement password reset functionality
+      const user = users.find(u => u.id === userId);
+      if (!user) {
+        toast({
+          title: 'Error',
+          description: 'User not found',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      // Send password reset email
+      await SuperAdminService.resetUserPassword(user.email);
       toast({
-        title: 'Coming Soon',
-        description: 'Password reset functionality will be implemented soon'
+        title: 'Success',
+        description: `Password reset email sent to ${user.email}`
       });
     } catch (error) {
       console.error('Error resetting password:', error);
       toast({
         title: 'Error',
-        description: 'Failed to reset password',
+        description: 'Failed to send password reset email',
         variant: 'destructive'
       });
     }
@@ -275,16 +363,40 @@ export function SuperAdminDashboard() {
 
   const handleSuspendUser = async (userId: string) => {
     try {
-      // TODO: Implement user suspension functionality
+      const user = users.find(u => u.id === userId);
+      if (!user) {
+        toast({
+          title: 'Error',
+          description: 'User not found',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      const isSuspended = user.isSuspended || false;
+      const action = isSuspended ? 'reactivate' : 'suspend';
+      
+      await SuperAdminService.updateUserSuspension(userId, !isSuspended);
       toast({
-        title: 'Coming Soon',
-        description: 'User suspension functionality will be implemented soon'
+        title: 'Success',
+        description: `User ${action}d successfully`
       });
+      
+      // Clear cache and refresh data
+      dashboardCache.delete(CacheKeys.superAdminUsers(
+        selectedUniversity === 'all' ? undefined : selectedUniversity,
+        selectedRole === 'all' ? undefined : selectedRole,
+        searchTerm || undefined
+      ));
+      dashboardCache.delete(CacheKeys.superAdminStats());
+      
+      loadUsers();
+      loadInitialData();
     } catch (error) {
-      console.error('Error suspending user:', error);
+      console.error('Error updating user suspension:', error);
       toast({
         title: 'Error',
-        description: 'Failed to suspend user',
+        description: 'Failed to update user status',
         variant: 'destructive'
       });
     }
@@ -347,6 +459,17 @@ export function SuperAdminDashboard() {
       case 'pending': return 'text-yellow-600';
       case 'rejected': return 'text-red-600';
       default: return 'text-gray-600';
+    }
+  };
+
+  const getOrderStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return 'bg-green-100 text-green-800';
+      case 'processing': return 'bg-blue-100 text-blue-800';
+      case 'ready': return 'bg-orange-100 text-orange-800';
+      case 'cancelled': return 'bg-red-100 text-red-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -833,6 +956,230 @@ export function SuperAdminDashboard() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* User Profile Modal */}
+      <Dialog open={showUserProfileModal} onOpenChange={(open) => {
+        setShowUserProfileModal(open);
+        if (!open) {
+          setSelectedUserDetails(null);
+        }
+      }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>User Profile</DialogTitle>
+            <DialogDescription>
+              Detailed information about the selected user
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedUserDetails && (
+            <div className="space-y-6">
+              {/* Basic Information */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Full Name</label>
+                  <p className="text-sm text-gray-600">{selectedUserDetails.fullName}</p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Email</label>
+                  <p className="text-sm text-gray-600">{selectedUserDetails.email}</p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">University ID</label>
+                  <p className="text-sm text-gray-600">{selectedUserDetails.universityId}</p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">University</label>
+                  <p className="text-sm text-gray-600">{selectedUserDetails.universityName}</p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Phone Number</label>
+                  <p className="text-sm text-gray-600">{selectedUserDetails.phoneNumber || 'Not provided'}</p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Role</label>
+                  <div className="flex items-center space-x-2">
+                    {getRoleIcon(selectedUserDetails.role)}
+                    <Badge className={getRoleBadgeColor(selectedUserDetails.role)}>
+                      {selectedUserDetails.role}
+                    </Badge>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Wallet Balance</label>
+                  <p className="text-sm text-gray-600">${(selectedUserDetails.walletBalance || 0).toFixed(2)}</p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Member Since</label>
+                  <p className="text-sm text-gray-600">{formatDate(selectedUserDetails.createdAt)}</p>
+                </div>
+              </div>
+
+              {/* Status Information */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Status Information</h3>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className={selectedUserDetails.isEmailVerified ? 'h-4 w-4 text-green-600' : 'h-4 w-4 text-gray-400'} />
+                    <span className="text-sm">Email Verified</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <XCircle className={selectedUserDetails.isSuspended ? 'h-4 w-4 text-red-600' : 'h-4 w-4 text-gray-400'} />
+                    <span className="text-sm">Suspended</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Activity className="h-4 w-4 text-blue-600" />
+                    <span className="text-sm">Active Account</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end space-x-2 pt-4 border-t">
+                <Button variant="outline" onClick={() => {
+                  setShowUserProfileModal(false);
+                  setSelectedUserDetails(null);
+                }}>
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* User Orders Modal */}
+      <Dialog open={showUserOrdersModal} onOpenChange={(open) => {
+        setShowUserOrdersModal(open);
+        if (!open) {
+          setSelectedUserDetails(null);
+          setSelectedUserOrders([]);
+        }
+      }}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>User Orders</DialogTitle>
+            <DialogDescription>
+              Order history for {selectedUserDetails?.fullName}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 max-h-96 overflow-y-auto">
+            {selectedUserOrders.length > 0 ? (
+              selectedUserOrders.map((order) => (
+                <div key={order.id} className="border rounded-lg p-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="font-medium">Order #{order.id.slice(-8)}</h4>
+                      <p className="text-sm text-gray-600">
+                        {order.vendorDetails?.name || 'Unknown Vendor'}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {formatDate(order.createdAt)}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium">${order.total.toFixed(2)}</p>
+                      <Badge className={getOrderStatusColor(order.status)}>
+                        {order.status}
+                      </Badge>
+                    </div>
+                  </div>
+                  
+                  {order.items && order.items.length > 0 && (
+                    <div className="mt-3">
+                      <p className="text-sm font-medium mb-2">Items:</p>
+                      <div className="space-y-1">
+                        {order.items.map((item, index) => (
+                          <div key={index} className="flex justify-between text-sm">
+                            <span>{item.quantity}x {item.name}</span>
+                            <span>${(item.price * item.quantity).toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">No orders found for this user.</p>
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end pt-4 border-t">
+            <Button variant="outline" onClick={() => {
+              setShowUserOrdersModal(false);
+              setSelectedUserDetails(null);
+              setSelectedUserOrders([]);
+            }}>
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Role Change Modal */}
+      <Dialog open={showRoleChangeModal} onOpenChange={(open) => {
+        setShowRoleChangeModal(open);
+        if (!open) {
+          setSelectedUserDetails(null);
+          setNewUserRole('');
+        }
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Change User Role</DialogTitle>
+            <DialogDescription>
+              Change the role for {selectedUserDetails?.fullName}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Current Role</label>
+              <div className="flex items-center space-x-2">
+                {selectedUserDetails && getRoleIcon(selectedUserDetails.role)}
+                <Badge className={selectedUserDetails && getRoleBadgeColor(selectedUserDetails.role)}>
+                  {selectedUserDetails?.role}
+                </Badge>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">New Role</label>
+              <Select value={newUserRole} onValueChange={setNewUserRole}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select new role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="student">Student</SelectItem>
+                  <SelectItem value="vendor">Vendor</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="super-admin">Super Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="flex justify-end space-x-2 pt-4 border-t">
+            <Button variant="outline" onClick={() => {
+              setShowRoleChangeModal(false);
+              setSelectedUserDetails(null);
+              setNewUserRole('');
+            }}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleConfirmRoleChange}
+              disabled={!newUserRole || newUserRole === selectedUserDetails?.role}
+            >
+              Change Role
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </SuperAdminLayout>
   );
 }

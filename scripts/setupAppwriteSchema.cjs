@@ -74,12 +74,16 @@ const schemas = {
       { key: 'role', type: 'enum', elements: ['student', 'vendor', 'admin', 'super-admin'], required: true },
       { key: 'walletBalance', type: 'float', required: false, default: 0 },
       { key: 'profileImageUrl', type: 'url', required: false },
-      { key: 'fcmToken', type: 'string', size: 255, required: false }
+      { key: 'fcmToken', type: 'string', size: 255, required: false },
+      { key: 'isSuspended', type: 'boolean', required: false, default: false },
+      { key: 'suspendedAt', type: 'datetime', required: false },
+      { key: 'suspensionReason', type: 'string', size: 500, required: false }
     ],
     indexes: [
       { key: 'email_index', type: 'unique', attributes: ['email'] },
       { key: 'university_index', type: 'key', attributes: ['universityName'] },
-      { key: 'role_index', type: 'key', attributes: ['role'] }
+      { key: 'role_index', type: 'key', attributes: ['role'] },
+      { key: 'suspension_index', type: 'key', attributes: ['isSuspended'] }
     ]
   },
 
