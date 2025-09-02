@@ -42,6 +42,31 @@ export interface EnrichedOrderData extends Order {
   };
 }
 
+export interface ComplaintData {
+  id: string;
+  userId: string;
+  vendorId: string;
+  orderId: string;
+  title: string;
+  description: string;
+  status: 'pending' | 'in_progress' | 'resolved';
+  createdAt: string;
+  resolvedAt?: string;
+  resolution?: string;
+  adminId?: string;
+  userDetails?: {
+    id: string;
+    fullName?: string;
+    email?: string;
+    universityName?: string;
+  };
+  vendorDetails?: {
+    id: string;
+    name?: string;
+    universityName?: string;
+  };
+}
+
 export class AppwriteSuperAdminService {
   /**
    * Generate a random code for one-time use

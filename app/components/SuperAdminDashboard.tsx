@@ -35,10 +35,10 @@ import {
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/(landing)/components/ui/dropdown-menu';
 import { 
-  SuperAdminService,
+  AppwriteSuperAdminService as SuperAdminService,
   EnrichedOrderData,
   ComplaintData
-} from '@/lib/superAdminService';
+} from '@/lib/appwriteSuperAdminService';
 import type {
   UserData,
   VendorData,

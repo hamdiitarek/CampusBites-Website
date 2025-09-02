@@ -149,10 +149,21 @@ export interface Order {
   total: number;               // Total order amount
   status: OrderStatus;         // Order status
   paymentMethod: PaymentMethod; // Payment method used
-  createdAt: Timestamp;        // Order creation time
-  updatedAt?: Timestamp;       // Last status update
-  estimatedReadyTime?: Timestamp; // Estimated completion time
-  completedAt?: Timestamp;     // Actual completion time
+  createdAt: Timestamp | string; // Order creation time
+  updatedAt?: Timestamp | string; // Last status update
+  estimatedReadyTime?: Timestamp | string; // Estimated completion time
+  completedAt?: Timestamp | string; // Actual completion time
+  // Enhanced timestamp fields (Version 2.0 - may not exist in all orders)
+  confirmedAt?: Timestamp | string; // When vendor confirms order
+  readyAt?: Timestamp | string; // When order is ready for pickup
+  cancelledAt?: Timestamp | string; // When order is cancelled
+  statusHistory?: Array<{      // Track all status changes
+    status: string;
+    timestamp: Timestamp | string;
+    updatedBy: string;
+    note?: string;
+  }>;
+  customerNote?: string;       // Customer notes for the order
 }
 
 // Legacy interface for backward compatibility

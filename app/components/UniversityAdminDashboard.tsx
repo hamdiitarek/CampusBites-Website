@@ -47,13 +47,13 @@ import {
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../(landing)/components/ui/dropdown-menu';
 import { 
-  UniversityAdminService,
+  AppwriteUniversityAdminService as UniversityAdminService,
   AnalyticsData,
   StudentEngagementData,
   VendorPerformanceData,
-  OrderData,
   FoodTrendData
-} from '../../lib/universityAdminService';
+} from '@/lib/appwriteUniversityAdminService';
+import type { Order as OrderData } from '@/lib/models';
 import { AdvancedFilters, FilterConfig } from './universityAdmin/AdvancedFilters';
 import { useToast } from '@/hooks/use-toast';
 
@@ -1743,7 +1743,7 @@ export function UniversityAdminDashboard() {
                       
                       return (
                         <motion.div 
-                          key={order.id || `order-${index}-${order.vendorId}-${order.createdAt?.seconds || Date.now()}`}
+                          key={order.id || `order-${index}-${order.vendorId}-${typeof order.createdAt === 'string' ? order.createdAt : order.createdAt?.seconds || Date.now()}`}
                           initial={{ opacity: 0, y: 20, scale: 0.95 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: -20, scale: 0.95 }}
