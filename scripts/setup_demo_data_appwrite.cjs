@@ -442,7 +442,8 @@ async function createDemoStudents() {
       log(`✅ Student created: ${studentData.fullName} (${user.$id})`, 'success');
     } catch (error) {
       if (error.code === 409) {
-        log(`⚠️  Student already exists: ${studentData.email}`, 'warning');
+        log(`⚠️  Student user already exists: ${studentData.email}`, 'warning');
+        log(`ℹ️  If orders fail to create, existing students should be found in database query`, 'info');
       } else {
         log(`❌ Error creating student ${studentData.email}: ${error.message}`, 'error');
       }
@@ -580,7 +581,141 @@ async function createDemoVendors() {
       log(`✅ Vendor created: ${vendorData.name} (${user.$id}) with menu structure`, 'success');
     } catch (error) {
       if (error.code === 409) {
-        log(`⚠️  Vendor already exists: ${vendorData.email}`, 'warning');
+        log(`⚠️  Vendor user already exists: ${vendorData.email}`, 'warning');
+        
+        // Try to get the existing user and create vendor document if missing
+        try {
+          const usersResponse = await databases.listDocuments(
+            config.databaseId,
+            config.collections.users,
+            []
+          );
+          const existingUser = usersResponse.documents.find(doc => 
+            doc.email === vendorData.email && doc.role === 'vendor'
+          );
+          
+          if (existingUser) {
+            // Check if vendor document exists
+            try {
+              await databases.getDocument(
+                config.databaseId,
+                config.collections.vendors,
+                existingUser.$id
+              );
+              log(`✅ Vendor document already exists for: ${vendorData.name}`, 'success');
+            } catch (vendorError) {
+              if (vendorError.code === 404) {
+                // Vendor document doesn't exist, create it
+                log(`📝 Creating missing vendor document for: ${vendorData.name}`, 'info');
+                
+                await databases.createDocument(
+                  config.databaseId,
+                  config.collections.vendors,
+                  existingUser.$id,
+                  {
+                    id: existingUser.$id,
+                    name: vendorData.name,
+                    userId: existingUser.$id,
+                    universityId: UNIVERSITY_ID,
+                    universityName: UNIVERSITY_NAME,
+                    description: vendorData.description,
+                    rating: vendorData.rating,
+                    reviewCount: vendorData.reviewCount,
+                    categories: vendorData.categories,
+                    isOpen: vendorData.isOpen,
+                    isApproved: vendorData.isApproved,
+                    isSuspended: vendorData.isSuspended
+                  }
+                );
+                
+                // Create menu structure if missing
+                try {
+                  await databases.getDocument(
+                    config.databaseId,
+                    config.collections.menus,
+                    existingUser.$id
+                  );
+                } catch (menuError) {
+                  if (menuError.code === 404) {
+                    // Create menu structure
+                    const menuData = JSON.parse(vendorData.menu);
+                    await databases.createDocument(
+                      config.databaseId,
+                      config.collections.menus,
+                      existingUser.$id,
+                      {
+                        id: existingUser.$id,
+                        vendorId: existingUser.$id,
+                        name: 'Main Menu',
+                        description: `Main menu for ${vendorData.name}`,
+                        isActive: true,
+                        displayOrder: 1
+                      }
+                    );
+                    
+                    // Create categories and menu items
+                    let categoryOrder = 1;
+                    for (const [categoryKey, categoryData] of Object.entries(menuData)) {
+                      const categoryId = ID.unique();
+                      await databases.createDocument(
+                        config.databaseId,
+                        config.collections.categories,
+                        categoryId,
+                        {
+                          id: categoryId,
+                          vendorId: existingUser.$id,
+                          menuId: existingUser.$id,
+                          name: categoryData.Name,
+                          nameAr: categoryData.NameAr || '',
+                          description: categoryData.Description || '',
+                          isActive: true,
+                          displayOrder: categoryOrder++
+                        }
+                      );
+                      
+                      // Create menu items for this category
+                      let itemOrder = 1;
+                      for (const [itemKey, itemData] of Object.entries(categoryData)) {
+                        if (itemKey === 'Name' || itemKey === 'CID' || itemKey === 'NameAr' || itemKey === 'Description') continue;
+                        
+                        const itemId = ID.unique();
+                        await databases.createDocument(
+                          config.databaseId,
+                          config.collections.menuItems,
+                          itemId,
+                          {
+                            id: itemId,
+                            vendorId: existingUser.$id,
+                            menuId: existingUser.$id,
+                            categoryId: categoryId,
+                            name: itemData.Name,
+                            nameAr: itemData.NameAr || '',
+                            description: itemData.Description || '',
+                            price: itemData.Price,
+                            isAvailable: itemData.IsAvailable !== false,
+                            popularity: itemData.Popularity || 0,
+                            customizationOptions: JSON.stringify(itemData.CustomizationOptions || {}),
+                            allergens: JSON.stringify(itemData.Allergens || []),
+                            nutritionalInfo: JSON.stringify(itemData.NutritionalInfo || {}),
+                            preparationTime: itemData.PreparationTime || 0,
+                            displayOrder: itemOrder++,
+                            tags: JSON.stringify(itemData.Tags || [])
+                          }
+                        );
+                      }
+                    }
+                  }
+                }
+                
+                log(`✅ Vendor document created for existing user: ${vendorData.name}`, 'success');
+              }
+            }
+            
+            createdVendors.push(existingUser);
+          }
+        } catch (lookupError) {
+          log(`❌ Error handling existing vendor ${vendorData.name}: ${lookupError.message}`, 'error');
+        }
       } else {
         log(`❌ Error creating vendor ${vendorData.name}: ${error.message}`, 'error');
       }
@@ -1030,7 +1165,7 @@ async function setupDemoData() {
   
   await createUniversity();
   await createDemoStudents();
-  const vendors = await createDemoVendors();
+  await createDemoVendors();
   await createSampleOrders();
   
   log('\n✅ Demo data setup completed!', 'success');
@@ -1067,7 +1202,7 @@ async function setupDemoDataWithCleanup() {
   
   await createUniversity();
   await createDemoStudents();
-  const vendors = await createDemoVendors();
+  await createDemoVendors();
   await createSampleOrders();
   
   log('\n✅ Demo data setup with cleanup completed!', 'success');
