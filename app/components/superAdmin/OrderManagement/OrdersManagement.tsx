@@ -546,7 +546,7 @@ export function OrdersManagement() {
                       )}
                     </p>
                     <p className="text-sm text-gray-500">
-                      {order.createdAt?.seconds ? new Date(order.createdAt.seconds * 1000).toLocaleString() : 'Unknown date'}
+                      {typeof order.createdAt === 'string' ? new Date(order.createdAt).toLocaleString() : order.createdAt?.seconds ? new Date(order.createdAt.seconds * 1000).toLocaleString() : 'Unknown date'}
                     </p>
                   </div>
                 </div>

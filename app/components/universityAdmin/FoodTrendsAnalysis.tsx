@@ -22,7 +22,7 @@ import {
   Calendar,
   Filter
 } from 'lucide-react';
-import { FoodTrendData } from '../../../lib/universityAdminService';
+import { FoodTrendData } from '@/lib/appwriteUniversityAdminService';
 
 interface FoodTrendsAnalysisProps {
   trends: FoodTrendData[];
