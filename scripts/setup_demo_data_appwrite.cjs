@@ -335,6 +335,28 @@ const demoStudents = [
   }
 ];
 
+// Demo admin users
+const demoAdmins = [
+  {
+    email: "admin@eui.edu.eg",
+    password: "admin123456",
+    fullName: "Dr. Ahmed Hassan",
+    universityId: "ADMIN-001",
+    phoneNumber: "+201234567800",
+    role: "admin",
+    walletBalance: 0
+  },
+  {
+    email: "superadmin@campusbites.com",
+    password: "superadmin123456",
+    fullName: "CampusBites Super Admin",
+    universityId: "SUPER-001",
+    phoneNumber: "+201234567888",
+    role: "super-admin",
+    walletBalance: 0
+  }
+];
+
 // Utility functions
 function log(message, level = 'info') {
   const timestamp = new Date().toISOString();
@@ -442,10 +464,54 @@ async function createDemoStudents() {
       log(`✅ Student created: ${studentData.fullName} (${user.$id})`, 'success');
     } catch (error) {
       if (error.code === 409) {
-        log(`⚠️  Student user already exists: ${studentData.email}`, 'warning');
-        log(`ℹ️  If orders fail to create, existing students should be found in database query`, 'info');
+        log(`⚠️  Student already exists: ${studentData.email}`, 'warning');
       } else {
         log(`❌ Error creating student ${studentData.email}: ${error.message}`, 'error');
+      }
+    }
+  }
+}
+
+// Function to create demo admin accounts
+async function createDemoAdmins() {
+  log('👑 Creating demo admin accounts...');
+  
+  for (const adminData of demoAdmins) {
+    try {
+      // Create user account in Appwrite Auth
+      const user = await users.create(
+        ID.unique(),
+        adminData.email,
+        undefined, // phone
+        adminData.password,
+        adminData.fullName
+      );
+      
+      // Create user document in database
+      await databases.createDocument(
+        config.databaseId,
+        config.collections.users,
+        user.$id,
+        {
+          id: user.$id,
+          fullName: adminData.fullName,
+          email: adminData.email,
+          universityId: adminData.universityId,
+          universityName: adminData.role === 'super-admin' ? 'CampusBites Global' : UNIVERSITY_NAME,
+          phoneNumber: adminData.phoneNumber,
+          isEmailVerified: true, // Admins have verified emails
+          role: adminData.role,
+          walletBalance: adminData.walletBalance,
+          fcmToken: ""
+        }
+      );
+      
+      log(`✅ ${adminData.role === 'super-admin' ? 'Super Admin' : 'Admin'} created: ${adminData.fullName} (${user.$id})`, 'success');
+    } catch (error) {
+      if (error.code === 409) {
+        log(`⚠️  ${adminData.role === 'super-admin' ? 'Super Admin' : 'Admin'} user already exists: ${adminData.email}`, 'warning');
+      } else {
+        log(`❌ Error creating ${adminData.role} ${adminData.email}: ${error.message}`, 'error');
       }
     }
   }
@@ -581,141 +647,7 @@ async function createDemoVendors() {
       log(`✅ Vendor created: ${vendorData.name} (${user.$id}) with menu structure`, 'success');
     } catch (error) {
       if (error.code === 409) {
-        log(`⚠️  Vendor user already exists: ${vendorData.email}`, 'warning');
-        
-        // Try to get the existing user and create vendor document if missing
-        try {
-          const usersResponse = await databases.listDocuments(
-            config.databaseId,
-            config.collections.users,
-            []
-          );
-          const existingUser = usersResponse.documents.find(doc => 
-            doc.email === vendorData.email && doc.role === 'vendor'
-          );
-          
-          if (existingUser) {
-            // Check if vendor document exists
-            try {
-              await databases.getDocument(
-                config.databaseId,
-                config.collections.vendors,
-                existingUser.$id
-              );
-              log(`✅ Vendor document already exists for: ${vendorData.name}`, 'success');
-            } catch (vendorError) {
-              if (vendorError.code === 404) {
-                // Vendor document doesn't exist, create it
-                log(`📝 Creating missing vendor document for: ${vendorData.name}`, 'info');
-                
-                await databases.createDocument(
-                  config.databaseId,
-                  config.collections.vendors,
-                  existingUser.$id,
-                  {
-                    id: existingUser.$id,
-                    name: vendorData.name,
-                    userId: existingUser.$id,
-                    universityId: UNIVERSITY_ID,
-                    universityName: UNIVERSITY_NAME,
-                    description: vendorData.description,
-                    rating: vendorData.rating,
-                    reviewCount: vendorData.reviewCount,
-                    categories: vendorData.categories,
-                    isOpen: vendorData.isOpen,
-                    isApproved: vendorData.isApproved,
-                    isSuspended: vendorData.isSuspended
-                  }
-                );
-                
-                // Create menu structure if missing
-                try {
-                  await databases.getDocument(
-                    config.databaseId,
-                    config.collections.menus,
-                    existingUser.$id
-                  );
-                } catch (menuError) {
-                  if (menuError.code === 404) {
-                    // Create menu structure
-                    const menuData = JSON.parse(vendorData.menu);
-                    await databases.createDocument(
-                      config.databaseId,
-                      config.collections.menus,
-                      existingUser.$id,
-                      {
-                        id: existingUser.$id,
-                        vendorId: existingUser.$id,
-                        name: 'Main Menu',
-                        description: `Main menu for ${vendorData.name}`,
-                        isActive: true,
-                        displayOrder: 1
-                      }
-                    );
-                    
-                    // Create categories and menu items
-                    let categoryOrder = 1;
-                    for (const [categoryKey, categoryData] of Object.entries(menuData)) {
-                      const categoryId = ID.unique();
-                      await databases.createDocument(
-                        config.databaseId,
-                        config.collections.categories,
-                        categoryId,
-                        {
-                          id: categoryId,
-                          vendorId: existingUser.$id,
-                          menuId: existingUser.$id,
-                          name: categoryData.Name,
-                          nameAr: categoryData.NameAr || '',
-                          description: categoryData.Description || '',
-                          isActive: true,
-                          displayOrder: categoryOrder++
-                        }
-                      );
-                      
-                      // Create menu items for this category
-                      let itemOrder = 1;
-                      for (const [itemKey, itemData] of Object.entries(categoryData)) {
-                        if (itemKey === 'Name' || itemKey === 'CID' || itemKey === 'NameAr' || itemKey === 'Description') continue;
-                        
-                        const itemId = ID.unique();
-                        await databases.createDocument(
-                          config.databaseId,
-                          config.collections.menuItems,
-                          itemId,
-                          {
-                            id: itemId,
-                            vendorId: existingUser.$id,
-                            menuId: existingUser.$id,
-                            categoryId: categoryId,
-                            name: itemData.Name,
-                            nameAr: itemData.NameAr || '',
-                            description: itemData.Description || '',
-                            price: itemData.Price,
-                            isAvailable: itemData.IsAvailable !== false,
-                            popularity: itemData.Popularity || 0,
-                            customizationOptions: JSON.stringify(itemData.CustomizationOptions || {}),
-                            allergens: JSON.stringify(itemData.Allergens || []),
-                            nutritionalInfo: JSON.stringify(itemData.NutritionalInfo || {}),
-                            preparationTime: itemData.PreparationTime || 0,
-                            displayOrder: itemOrder++,
-                            tags: JSON.stringify(itemData.Tags || [])
-                          }
-                        );
-                      }
-                    }
-                  }
-                }
-                
-                log(`✅ Vendor document created for existing user: ${vendorData.name}`, 'success');
-              }
-            }
-            
-            createdVendors.push(existingUser);
-          }
-        } catch (lookupError) {
-          log(`❌ Error handling existing vendor ${vendorData.name}: ${lookupError.message}`, 'error');
-        }
+        log(`⚠️  Vendor already exists: ${vendorData.email}`, 'warning');
       } else {
         log(`❌ Error creating vendor ${vendorData.name}: ${error.message}`, 'error');
       }
@@ -1163,15 +1095,17 @@ async function setupDemoData() {
   log('🚀 Setting up demo data for Egypt University of Informatics (Appwrite)...');
   log('='.repeat(60));
   
-  await createUniversity();
-  await createDemoStudents();
-  await createDemoVendors();
+  //await createUniversity();
+  //await createDemoStudents();
+  //await createDemoAdmins();
+  //const vendors = await createDemoVendors();
   await createSampleOrders();
   
   log('\n✅ Demo data setup completed!', 'success');
   log('\n📊 Summary:');
   log('- University: Egypt University of Informatics');
   log('- Students: 5 demo accounts with Egyptian names');
+  log('- Admins: 1 university admin + 1 super admin');
   log('- Vendors: 3 Egyptian-themed vendors with separate menu structure');
   log('- Menus: Separate collections for menus, categories, and menu items');
   log('- Orders: 200-300 orders spread across last 3 months');
@@ -1181,6 +1115,10 @@ async function setupDemoData() {
   log('\n🔐 Demo Student Login Credentials:');
   demoStudents.forEach(student => {
     console.log(`- ${student.email} / ${student.password} (${student.fullName})`);
+  });
+  log('\n👑 Demo Admin Login Credentials:');
+  demoAdmins.forEach(admin => {
+    console.log(`- ${admin.email} / ${admin.password} (${admin.fullName}) [${admin.role}]`);
   });
   log('\n🏪 Demo Vendor Login Credentials:');
   demoVendors.forEach(vendor => {
@@ -1202,7 +1140,7 @@ async function setupDemoDataWithCleanup() {
   
   await createUniversity();
   await createDemoStudents();
-  await createDemoVendors();
+  const vendors = await createDemoVendors();
   await createSampleOrders();
   
   log('\n✅ Demo data setup with cleanup completed!', 'success');

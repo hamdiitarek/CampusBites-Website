@@ -328,8 +328,11 @@ export class AppwriteUniversityAdminService {
 
       // Process ONLY completed orders for category performance breakdown
       completedOrders.forEach(order => {
-        const orderDate = AppwriteUniversityAdminService.toDate(order.createdAt);
-        const hour = orderDate.getHours();
+        // Use completion time for peak hour analysis since this represents when revenue was earned
+        const completionDate = order.completedAt 
+          ? AppwriteUniversityAdminService.toDate(order.completedAt)
+          : AppwriteUniversityAdminService.toDate(order.createdAt); // fallback to creation time if no completion time
+        const hour = completionDate.getHours();
         hourlyOrders[hour] = (hourlyOrders[hour] || 0) + 1;
 
         const vendorData = vendorDataMap[order.vendorId];
@@ -362,7 +365,10 @@ export class AppwriteUniversityAdminService {
         const previousWeekItemCounts: {[key: string]: number} = {};
         
         orders.forEach(order => {
-          const orderDate = AppwriteUniversityAdminService.toDate(order.createdAt);
+          // Use completion time for trend analysis since this represents when the order was actually fulfilled
+          const orderDate = order.completedAt 
+            ? AppwriteUniversityAdminService.toDate(order.completedAt)
+            : AppwriteUniversityAdminService.toDate(order.createdAt); // fallback for non-completed orders
           
           order.items.forEach((item: any) => {
             const itemName = item.name;
@@ -443,15 +449,27 @@ export class AppwriteUniversityAdminService {
       console.log(`📊 Category counts:`, categoryCounts);
       console.log(`📊 Category revenue:`, categoryRevenue);
       
-      // Daily stats
+      // Daily stats - separate order placement vs revenue completion
       const dailyStats: { [key: string]: { orders: number; revenue: number; } } = {};
+      
+      // Count all orders by creation date (when they were placed)
       orders.forEach(order => {
         const dateKey = AppwriteUniversityAdminService.toDate(order.createdAt).toISOString().split('T')[0];
         if (!dailyStats[dateKey]) {
           dailyStats[dateKey] = { orders: 0, revenue: 0 };
         }
         dailyStats[dateKey].orders += 1;
-        dailyStats[dateKey].revenue += order.total;
+      });
+      
+      // Count revenue only from completed orders by completion date (when revenue was earned)
+      completedOrders.forEach(order => {
+        if (order.completedAt) {
+          const completionDateKey = AppwriteUniversityAdminService.toDate(order.completedAt).toISOString().split('T')[0];
+          if (!dailyStats[completionDateKey]) {
+            dailyStats[completionDateKey] = { orders: 0, revenue: 0 };
+          }
+          dailyStats[completionDateKey].revenue += order.total;
+        }
       });
 
       const dailyStatsArray = Object.entries(dailyStats)
