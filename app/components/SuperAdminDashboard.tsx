@@ -39,6 +39,7 @@ import {
   EnrichedOrderData,
   ComplaintData
 } from '@/lib/appwriteSuperAdminService';
+import { dashboardCache, CacheKeys } from '@/lib/dashboardCache';
 import type {
   UserData,
   VendorData,
@@ -80,19 +81,47 @@ export function SuperAdminDashboard() {
   const loadInitialData = async () => {
     try {
       setLoading(true);
-      const [
-        stats,
-        universitiesData,
-        vendorsData,
-        ordersData,
-        complaintsData
-      ] = await Promise.all([
-        SuperAdminService.getDashboardStats(),
-        SuperAdminService.getUniversitiesWithCounts(),
-        SuperAdminService.getAllVendors(),
-        SuperAdminService.getRecentOrders(10),
-        SuperAdminService.getAllComplaints()
-      ]);
+      
+      // Check cache for basic data that doesn't change frequently
+      const cachedStats = dashboardCache.get<any>(CacheKeys.superAdminStats());
+      const cachedUniversities = dashboardCache.get<any[]>(CacheKeys.superAdminUniversities());
+      const cachedVendors = dashboardCache.get<VendorData[]>(CacheKeys.superAdminVendors());
+      
+      // Load from cache if available, otherwise fetch from API
+      let stats, universitiesData, vendorsData, ordersData, complaintsData;
+      
+      if (cachedStats && cachedUniversities && cachedVendors) {
+        console.log('🚀 Loading from cache for better performance');
+        stats = cachedStats;
+        universitiesData = cachedUniversities;
+        vendorsData = cachedVendors;
+        
+        // Always fetch fresh orders and complaints as they change frequently
+        [ordersData, complaintsData] = await Promise.all([
+          SuperAdminService.getRecentOrders(10),
+          SuperAdminService.getAllComplaints()
+        ]);
+      } else {
+        console.log('📡 Loading fresh data from API');
+        [
+          stats,
+          universitiesData,
+          vendorsData,
+          ordersData,
+          complaintsData
+        ] = await Promise.all([
+          SuperAdminService.getDashboardStats(),
+          SuperAdminService.getUniversitiesWithCounts(),
+          SuperAdminService.getAllVendors(),
+          SuperAdminService.getRecentOrders(10),
+          SuperAdminService.getAllComplaints()
+        ]);
+        
+        // Cache the data for future use
+        dashboardCache.set(CacheKeys.superAdminStats(), stats);
+        dashboardCache.set(CacheKeys.superAdminUniversities(), universitiesData);
+        dashboardCache.set(CacheKeys.superAdminVendors(), vendorsData);
+      }
 
       setDashboardStats(stats);
       setUniversities(universitiesData);
@@ -114,12 +143,32 @@ export function SuperAdminDashboard() {
   const loadUsers = async () => {
     try {
       setUsersLoading(true);
-      const usersData = await SuperAdminService.getAllUsers(
-        selectedUniversity,
-        selectedRole,
-        searchTerm
+      
+      // Check cache for user data
+      const cacheKey = CacheKeys.superAdminUsers(
+        selectedUniversity === 'all' ? undefined : selectedUniversity,
+        selectedRole === 'all' ? undefined : selectedRole,
+        searchTerm || undefined
       );
-      setUsers(usersData);
+      
+      const cachedUsers = dashboardCache.get<UserData[]>(cacheKey, 2 * 60 * 1000); // 2 minutes cache for users
+      
+      if (cachedUsers) {
+        console.log('🚀 Loading users from cache');
+        setUsers(cachedUsers);
+      } else {
+        console.log('📡 Loading fresh user data from API');
+        const usersData = await SuperAdminService.getAllUsers(
+          selectedUniversity,
+          selectedRole,
+          searchTerm,
+          'all' // For now, always load all status in main dashboard
+        );
+        
+        // Cache the user data
+        dashboardCache.set(cacheKey, usersData);
+        setUsers(usersData);
+      }
     } catch (error) {
       console.error('Error loading users:', error);
       toast({
@@ -139,7 +188,17 @@ export function SuperAdminDashboard() {
         title: 'Success',
         description: 'User role updated successfully'
       });
+      
+      // Clear user cache to force refresh
+      dashboardCache.delete(CacheKeys.superAdminUsers(
+        selectedUniversity === 'all' ? undefined : selectedUniversity,
+        selectedRole === 'all' ? undefined : selectedRole,
+        searchTerm || undefined
+      ));
+      dashboardCache.delete(CacheKeys.superAdminStats()); // Also clear stats cache
+      
       loadUsers(); // Refresh users list
+      loadInitialData(); // Refresh stats
     } catch (error) {
       console.error('Error updating user role:', error);
       toast({
@@ -157,6 +216,11 @@ export function SuperAdminDashboard() {
         title: 'Success',
         description: `Vendor ${isApproved ? 'approved' : 'rejected'} successfully`
       });
+      
+      // Clear vendor-related cache to force refresh
+      dashboardCache.delete(CacheKeys.superAdminVendors());
+      dashboardCache.delete(CacheKeys.superAdminStats()); // Also clear stats cache
+      
       loadInitialData(); // Refresh all data
     } catch (error) {
       console.error('Error updating vendor approval:', error);

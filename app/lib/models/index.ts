@@ -51,6 +51,9 @@ export interface User {
   walletBalance: number;        // Digital wallet balance (EGP)
   profileImageUrl?: string;     // Profile picture URL
   fcmToken?: string;            // Firebase Cloud Messaging token
+  isSuspended?: boolean;        // User suspension status
+  suspendedAt?: Timestamp;      // Suspension date
+  suspensionReason?: string;    // Reason for suspension
   createdAt?: Timestamp;        // Account creation date
   updatedAt?: Timestamp;        // Last update timestamp
 }

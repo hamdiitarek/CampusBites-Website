@@ -273,6 +273,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return `/${language}/vendor-dashboard`;
       case 'admin':
         return `/${language}/admin-dashboard`;
+      case 'super-admin':
+        return `/${language}/super-admin-dashboard`;
       default:
         return `/${language}/login`;
     }

@@ -83,15 +83,15 @@ export class AppwriteSuperAdminService {
   /**
    * Get all users with optional filtering
    */
-  static async getAllUsers(universityName?: string, role?: string, searchTerm?: string): Promise<User[]> {
+  static async getAllUsers(universityName?: string, role?: string, searchTerm?: string, status?: string): Promise<User[]> {
     try {
       const queries = [];
       
-      if (universityName) {
+      if (universityName && universityName !== 'all') {
         queries.push(Query.equal('universityName', universityName));
       }
       
-      if (role) {
+      if (role && role !== 'all') {
         queries.push(Query.equal('role', role));
       }
 
@@ -112,7 +112,8 @@ export class AppwriteSuperAdminService {
         role: doc.role,
         walletBalance: doc.walletBalance,
         profileImageUrl: doc.profileImageUrl,
-        fcmToken: doc.fcmToken
+        fcmToken: doc.fcmToken,
+        isSuspended: doc.isSuspended || false // Add suspension status
         // Note: Skipping createdAt/updatedAt for now due to type mismatch with Timestamp
       })) as User[];
 
@@ -124,6 +125,22 @@ export class AppwriteSuperAdminService {
           user.email?.toLowerCase().includes(lowerSearchTerm) ||
           user.universityId?.toLowerCase().includes(lowerSearchTerm)
         );
+      }
+
+      // Apply status filter if provided (client-side filtering)
+      if (status && status !== 'all') {
+        users = users.filter(user => {
+          switch (status) {
+            case 'active':
+              return user.isEmailVerified && !user.isSuspended;
+            case 'suspended':
+              return user.isSuspended;
+            case 'unverified':
+              return !user.isEmailVerified;
+            default:
+              return true;
+          }
+        });
       }
 
       return users;
@@ -725,6 +742,86 @@ export class AppwriteSuperAdminService {
       );
     } catch (error) {
       console.error('Error deleting one-time code:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Suspend a user
+   */
+  static async suspendUser(userId: string, reason?: string): Promise<void> {
+    try {
+      await databases.updateDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.usersCollectionId,
+        userId,
+        { 
+          isSuspended: true,
+          suspendedAt: new Date().toISOString(),
+          suspensionReason: reason || 'Suspended by admin'
+        }
+      );
+    } catch (error) {
+      console.error('Error suspending user:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Unsuspend a user
+   */
+  static async unsuspendUser(userId: string): Promise<void> {
+    try {
+      await databases.updateDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.usersCollectionId,
+        userId,
+        { 
+          isSuspended: false,
+          suspendedAt: null,
+          suspensionReason: null,
+          unsuspendedAt: new Date().toISOString()
+        }
+      );
+    } catch (error) {
+      console.error('Error unsuspending user:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update vendor approval status and add suspend/reject functionality
+   */
+  static async updateVendorStatus(vendorId: string, status: 'approved' | 'rejected' | 'suspended', reason?: string): Promise<void> {
+    try {
+      const updateData: any = {
+        isApproved: status === 'approved',
+        lastModified: new Date().toISOString()
+      };
+
+      if (status === 'suspended') {
+        updateData.isSuspended = true;
+        updateData.suspendedAt = new Date().toISOString();
+        updateData.suspensionReason = reason || 'Suspended by admin';
+      } else if (status === 'rejected') {
+        updateData.isApproved = false;
+        updateData.rejectedAt = new Date().toISOString();
+        updateData.rejectionReason = reason || 'Rejected by admin';
+      } else if (status === 'approved') {
+        updateData.isSuspended = false;
+        updateData.suspendedAt = null;
+        updateData.suspensionReason = null;
+        updateData.approvedAt = new Date().toISOString();
+      }
+
+      await databases.updateDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.vendorsCollectionId,
+        vendorId,
+        updateData
+      );
+    } catch (error) {
+      console.error('Error updating vendor status:', error);
       throw error;
     }
   }

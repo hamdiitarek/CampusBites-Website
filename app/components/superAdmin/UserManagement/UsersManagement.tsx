@@ -35,7 +35,9 @@ import {
   Ban
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/(landing)/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/(landing)/components/ui/dialog';
 import { SuperAdminService } from '@/lib/appwriteSuperAdminService';
+import { dashboardCache } from '@/lib/dashboardCache';
 import type { UserData } from '@/lib/models';
 import { useToast } from '@/hooks/use-toast';
 
@@ -65,6 +67,10 @@ export function UsersManagement() {
     vendors: 0,
     admins: 0
   });
+
+  // User details modal state
+  const [selectedUserDetails, setSelectedUserDetails] = useState<UserData | null>(null);
+  const [showUserDetailsModal, setShowUserDetailsModal] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -110,7 +116,8 @@ export function UsersManagement() {
       const usersData = await SuperAdminService.getAllUsers(
         selectedUniversity,
         selectedRole,
-        searchTerm
+        searchTerm,
+        selectedStatus
       );
       setUsers(usersData);
     } catch (error) {
@@ -142,11 +149,11 @@ export function UsersManagement() {
   };
 
   const handleViewUserProfile = (userId: string) => {
-    // TODO: Open user profile modal
-    toast({
-      title: 'Coming Soon',
-      description: 'User profile modal will be implemented'
-    });
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      setSelectedUserDetails(user);
+      setShowUserDetailsModal(true);
+    }
   };
 
   const handleEditUser = (userId: string) => {
@@ -157,12 +164,38 @@ export function UsersManagement() {
     });
   };
 
-  const handleSuspendUser = (userId: string) => {
-    // TODO: Implement user suspension
-    toast({
-      title: 'Coming Soon',
-      description: 'User suspension functionality will be implemented'
-    });
+  const handleSuspendUser = async (userId: string) => {
+    try {
+      const user = users.find(u => u.id === userId);
+      if (!user) return;
+
+      if (user.isSuspended) {
+        // Unsuspend user
+        await SuperAdminService.unsuspendUser(userId);
+        toast({
+          title: 'Success',
+          description: 'User has been unsuspended successfully'
+        });
+      } else {
+        // Suspend user
+        await SuperAdminService.suspendUser(userId, 'Suspended by admin');
+        toast({
+          title: 'Success',
+          description: 'User has been suspended successfully'
+        });
+      }
+      
+      // Clear cache and refresh data
+      dashboardCache.clear(); // Clear all cache to ensure fresh data
+      loadUsers();
+    } catch (error) {
+      console.error('Error updating user suspension status:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update user status',
+        variant: 'destructive'
+      });
+    }
   };
 
   const handleExportUsers = () => {
@@ -452,6 +485,93 @@ export function UsersManagement() {
           )}
         </CardContent>
       </Card>
+
+      {/* User Details Modal */}
+      <Dialog open={showUserDetailsModal} onOpenChange={setShowUserDetailsModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>User Details</DialogTitle>
+            <DialogDescription>
+              Detailed information about the selected user
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedUserDetails && (
+            <div className="space-y-6">
+              {/* Basic Information */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Full Name</label>
+                  <p className="text-sm text-gray-600">{selectedUserDetails.fullName}</p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Email</label>
+                  <p className="text-sm text-gray-600">{selectedUserDetails.email}</p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Role</label>
+                  <div className="flex items-center space-x-2">
+                    {getRoleIcon(selectedUserDetails.role)}
+                    <Badge className={getRoleBadgeColor(selectedUserDetails.role)}>
+                      {selectedUserDetails.role}
+                    </Badge>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">University</label>
+                  <p className="text-sm text-gray-600">{selectedUserDetails.universityName || 'N/A'}</p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Phone Number</label>
+                  <p className="text-sm text-gray-600">{selectedUserDetails.phoneNumber || 'N/A'}</p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Wallet Balance</label>
+                  <p className="text-sm text-gray-600">${(selectedUserDetails.walletBalance || 0).toFixed(2)}</p>
+                </div>
+              </div>
+
+              {/* Status Information */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Status Information</h3>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className={selectedUserDetails.isEmailVerified ? 'h-4 w-4 text-green-600' : 'h-4 w-4 text-gray-400'} />
+                    <span className="text-sm">Email Verified</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Ban className={selectedUserDetails.isSuspended ? 'h-4 w-4 text-red-600' : 'h-4 w-4 text-gray-400'} />
+                    <span className="text-sm">Suspended</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Activity className="h-4 w-4 text-blue-600" />
+                    <span className="text-sm">Active Account</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end space-x-2 pt-4 border-t">
+                <Button variant="outline" onClick={() => setShowUserDetailsModal(false)}>
+                  Close
+                </Button>
+                <Button variant="outline" onClick={() => handleEditUser(selectedUserDetails.id)}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit User
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="text-red-600 border-red-600 hover:bg-red-50"
+                  onClick={() => handleSuspendUser(selectedUserDetails.id)}
+                >
+                  <Ban className="h-4 w-4 mr-2" />
+                  Suspend
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

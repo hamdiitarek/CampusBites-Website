@@ -53,6 +53,7 @@ import {
   VendorPerformanceData,
   FoodTrendData
 } from '@/lib/appwriteUniversityAdminService';
+import { dashboardCache, CacheKeys } from '@/lib/dashboardCache';
 import type { Order as OrderData } from '@/lib/models';
 import { AdvancedFilters, FilterConfig } from './universityAdmin/AdvancedFilters';
 import { useToast } from '@/hooks/use-toast';
@@ -178,13 +179,43 @@ export function UniversityAdminDashboard() {
         console.log('🚀 Loading dashboard data for university:', universityName);
         console.log('🔄 Dashboard useEffect triggered - loading initial data');
         
-        const [analyticsData, vendorsData, ordersData, studentsData, studentListData] = await Promise.all([
-          UniversityAdminService.getUniversityAnalytics(universityName, '90d'), // Changed from 30d to 90d to capture all demo data
-          UniversityAdminService.getVendorPerformance(universityName),
-          UniversityAdminService.getRecentOrders(universityName, 1000), // Load much more orders to match all demo data (783 orders)
-          UniversityAdminService.getStudentEngagement(universityName),
-          UniversityAdminService.getUniversityStudents(universityName, 100) // Load more students for better filtering
-        ]);
+        // Check cache for data that doesn't change frequently
+        const analyticsKey = CacheKeys.universityAnalytics(universityName, '90d');
+        const vendorsKey = CacheKeys.universityVendors(universityName);
+        const ordersKey = CacheKeys.universityOrders(universityName, 1000);
+        
+        const cachedAnalytics = dashboardCache.get<AnalyticsData>(analyticsKey);
+        const cachedVendors = dashboardCache.get<VendorPerformanceData[]>(vendorsKey);
+        const cachedOrders = dashboardCache.get<OrderData[]>(ordersKey, 3 * 60 * 1000); // 3 minutes for orders
+        
+        let analyticsData, vendorsData, ordersData, studentsData, studentListData;
+        
+        if (cachedAnalytics && cachedVendors && cachedOrders) {
+          console.log('🚀 Loading from cache for better performance');
+          analyticsData = cachedAnalytics;
+          vendorsData = cachedVendors;
+          ordersData = cachedOrders;
+          
+          // Always fetch fresh student data as it's not cached yet
+          [studentsData, studentListData] = await Promise.all([
+            UniversityAdminService.getStudentEngagement(universityName),
+            UniversityAdminService.getUniversityStudents(universityName, 100)
+          ]);
+        } else {
+          console.log('📡 Loading fresh data from API');
+          [analyticsData, vendorsData, ordersData, studentsData, studentListData] = await Promise.all([
+            UniversityAdminService.getUniversityAnalytics(universityName, '90d'), // Changed from 30d to 90d to capture all demo data
+            UniversityAdminService.getVendorPerformance(universityName),
+            UniversityAdminService.getRecentOrders(universityName, 1000), // Load much more orders to match all demo data (783 orders)
+            UniversityAdminService.getStudentEngagement(universityName),
+            UniversityAdminService.getUniversityStudents(universityName, 100) // Load more students for better filtering
+          ]);
+          
+          // Cache the data
+          dashboardCache.set(analyticsKey, analyticsData);
+          dashboardCache.set(vendorsKey, vendorsData);
+          dashboardCache.set(ordersKey, ordersData);
+        }
 
         console.log('📊 Dashboard loaded data:', {
           analytics: analyticsData,
