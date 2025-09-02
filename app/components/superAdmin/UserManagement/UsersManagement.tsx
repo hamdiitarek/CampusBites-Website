@@ -567,7 +567,10 @@ export function UsersManagement() {
       <Dialog open={showUserDetailsModal} onOpenChange={(open) => {
         setShowUserDetailsModal(open);
         if (!open) {
-          setSelectedUserDetails(null);
+          // Only clear selectedUserDetails if edit modal is not open
+          if (!showUserEditModal) {
+            setSelectedUserDetails(null);
+          }
         }
       }}>
         <DialogContent className="max-w-2xl">
@@ -662,8 +665,11 @@ export function UsersManagement() {
       <Dialog open={showUserEditModal} onOpenChange={(open) => {
         setShowUserEditModal(open);
         if (!open) {
-          setSelectedUserDetails(null);
           setEditUserData({});
+          // Only clear selectedUserDetails if details modal is not open
+          if (!showUserDetailsModal) {
+            setSelectedUserDetails(null);
+          }
         }
       }}>
         <DialogContent className="max-w-2xl">

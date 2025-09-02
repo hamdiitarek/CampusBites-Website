@@ -519,7 +519,10 @@ export function VendorsManagement() {
       <Dialog open={showVendorDetailsModal} onOpenChange={(open) => {
         setShowVendorDetailsModal(open);
         if (!open) {
-          setSelectedVendorDetails(null);
+          // Only clear selectedVendorDetails if edit modal is not open
+          if (!showVendorEditModal) {
+            setSelectedVendorDetails(null);
+          }
         }
       }}>
         <DialogContent className="max-w-3xl">
@@ -640,8 +643,11 @@ export function VendorsManagement() {
       <Dialog open={showVendorEditModal} onOpenChange={(open) => {
         setShowVendorEditModal(open);
         if (!open) {
-          setSelectedVendorDetails(null);
           setEditVendorData({});
+          // Only clear selectedVendorDetails if details modal is not open
+          if (!showVendorDetailsModal) {
+            setSelectedVendorDetails(null);
+          }
         }
       }}>
         <DialogContent className="max-w-2xl">
