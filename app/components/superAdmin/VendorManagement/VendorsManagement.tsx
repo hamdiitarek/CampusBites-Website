@@ -516,7 +516,12 @@ export function VendorsManagement() {
       </Card>
 
       {/* Vendor Details Modal */}
-      <Dialog open={showVendorDetailsModal} onOpenChange={setShowVendorDetailsModal}>
+      <Dialog open={showVendorDetailsModal} onOpenChange={(open) => {
+        setShowVendorDetailsModal(open);
+        if (!open) {
+          setSelectedVendorDetails(null);
+        }
+      }}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>Vendor Details</DialogTitle>
@@ -587,7 +592,10 @@ export function VendorsManagement() {
 
               {/* Action Buttons */}
               <div className="flex justify-end space-x-2 pt-4 border-t">
-                <Button variant="outline" onClick={() => setShowVendorDetailsModal(false)}>
+                <Button variant="outline" onClick={() => {
+                  setShowVendorDetailsModal(false);
+                  setSelectedVendorDetails(null);
+                }}>
                   Close
                 </Button>
                 <Button variant="outline" onClick={() => handleEditVendor(selectedVendorDetails.id)}>
