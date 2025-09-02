@@ -33,7 +33,10 @@ const config = {
     transactions: process.env.NEXT_PUBLIC_APPWRITE_TRANSACTIONS_COLLECTION_ID || 'transactions',
     reviews: process.env.NEXT_PUBLIC_APPWRITE_REVIEWS_COLLECTION_ID || 'reviews',
     oneTimeCodes: process.env.NEXT_PUBLIC_APPWRITE_ONE_TIME_CODES_COLLECTION_ID || 'oneTimeCodes',
-    analytics: process.env.NEXT_PUBLIC_APPWRITE_ANALYTICS_COLLECTION_ID || 'analytics'
+    analytics: process.env.NEXT_PUBLIC_APPWRITE_ANALYTICS_COLLECTION_ID || 'analytics',
+    menus: process.env.NEXT_PUBLIC_APPWRITE_MENUS_COLLECTION_ID || 'menus',
+    categories: process.env.NEXT_PUBLIC_APPWRITE_CATEGORIES_COLLECTION_ID || 'categories',
+    menuItems: process.env.NEXT_PUBLIC_APPWRITE_MENU_ITEMS_COLLECTION_ID || 'menuItems'
   },
   storageBucketId: process.env.NEXT_PUBLIC_APPWRITE_STORAGE_BUCKET_ID || 'images'
 };
@@ -335,6 +338,96 @@ const schemas = {
       { key: 'date_index', type: 'key', attributes: ['date'] },
       { key: 'vendor_index', type: 'key', attributes: ['vendorId'] },
       { key: 'university_index', type: 'key', attributes: ['universityId'] }
+    ]
+  },
+
+  menus: {
+    name: 'Menus',
+    permissions: [
+      Permission.create(Role.any()),
+      Permission.read(Role.any()),
+      Permission.update(Role.any()),
+      Permission.delete(Role.any())
+    ],
+    attributes: [
+      { key: 'id', type: 'string', size: 36, required: true },
+      { key: 'vendorId', type: 'string', size: 36, required: true },
+      { key: 'name', type: 'string', size: 255, required: true },
+      { key: 'nameAr', type: 'string', size: 255, required: false },
+      { key: 'description', type: 'string', size: 1000, required: false },
+      { key: 'isActive', type: 'boolean', required: false, default: true },
+      { key: 'displayOrder', type: 'integer', required: false, default: 1, min: 1 },
+      { key: 'imageUrl', type: 'url', required: false }
+    ],
+    indexes: [
+      { key: 'vendor_index', type: 'key', attributes: ['vendorId'] },
+      { key: 'active_index', type: 'key', attributes: ['isActive'] },
+      { key: 'order_index', type: 'key', attributes: ['displayOrder'] }
+    ]
+  },
+
+  categories: {
+    name: 'Categories',
+    permissions: [
+      Permission.create(Role.any()),
+      Permission.read(Role.any()),
+      Permission.update(Role.any()),
+      Permission.delete(Role.any())
+    ],
+    attributes: [
+      { key: 'id', type: 'string', size: 36, required: true },
+      { key: 'vendorId', type: 'string', size: 36, required: true },
+      { key: 'menuId', type: 'string', size: 36, required: true },
+      { key: 'name', type: 'string', size: 255, required: true },
+      { key: 'nameAr', type: 'string', size: 255, required: false },
+      { key: 'description', type: 'string', size: 1000, required: false },
+      { key: 'isActive', type: 'boolean', required: false, default: true },
+      { key: 'displayOrder', type: 'integer', required: false, default: 1, min: 1 },
+      { key: 'imageUrl', type: 'url', required: false }
+    ],
+    indexes: [
+      { key: 'vendor_index', type: 'key', attributes: ['vendorId'] },
+      { key: 'menu_index', type: 'key', attributes: ['menuId'] },
+      { key: 'active_index', type: 'key', attributes: ['isActive'] },
+      { key: 'order_index', type: 'key', attributes: ['displayOrder'] }
+    ]
+  },
+
+  menuItems: {
+    name: 'Menu Items',
+    permissions: [
+      Permission.create(Role.any()),
+      Permission.read(Role.any()),
+      Permission.update(Role.any()),
+      Permission.delete(Role.any())
+    ],
+    attributes: [
+      { key: 'id', type: 'string', size: 36, required: true },
+      { key: 'vendorId', type: 'string', size: 36, required: true },
+      { key: 'menuId', type: 'string', size: 36, required: true },
+      { key: 'categoryId', type: 'string', size: 36, required: true },
+      { key: 'name', type: 'string', size: 255, required: true },
+      { key: 'nameAr', type: 'string', size: 255, required: false },
+      { key: 'description', type: 'string', size: 1000, required: false },
+      { key: 'price', type: 'float', required: true, min: 0 },
+      { key: 'isAvailable', type: 'boolean', required: false, default: true },
+      { key: 'popularity', type: 'integer', required: false, default: 0, min: 0, max: 100 },
+      { key: 'imageUrl', type: 'url', required: false },
+      { key: 'customizationOptions', type: 'string', size: 2000, required: false }, // JSON string
+      { key: 'allergens', type: 'string', size: 500, required: false }, // JSON array string
+      { key: 'nutritionalInfo', type: 'string', size: 1000, required: false }, // JSON string
+      { key: 'preparationTime', type: 'integer', required: false, default: 0, min: 0 }, // minutes
+      { key: 'displayOrder', type: 'integer', required: false, default: 1, min: 1 },
+      { key: 'tags', type: 'string', size: 500, required: false } // JSON array string
+    ],
+    indexes: [
+      { key: 'vendor_index', type: 'key', attributes: ['vendorId'] },
+      { key: 'menu_index', type: 'key', attributes: ['menuId'] },
+      { key: 'category_index', type: 'key', attributes: ['categoryId'] },
+      { key: 'available_index', type: 'key', attributes: ['isAvailable'] },
+      { key: 'popularity_index', type: 'key', attributes: ['popularity'] },
+      { key: 'price_index', type: 'key', attributes: ['price'] },
+      { key: 'order_index', type: 'key', attributes: ['displayOrder'] }
     ]
   }
 };

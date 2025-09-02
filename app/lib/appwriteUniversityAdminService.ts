@@ -240,9 +240,9 @@ export class AppwriteUniversityAdminService {
         appwriteConfig.databaseId,
         appwriteConfig.ordersCollectionId,
         [
-          Query.greaterThanEqual('createdAt', startDate.toISOString()),
-          Query.lessThanEqual('createdAt', endDate.toISOString()),
-          Query.orderDesc('createdAt'),
+          Query.greaterThanEqual('$createdAt', startDate.toISOString()),
+          Query.lessThanEqual('$createdAt', endDate.toISOString()),
+          Query.orderDesc('$createdAt'),
           Query.limit(4000) // Large limit to capture all orders in range
         ]
       );
@@ -296,9 +296,9 @@ export class AppwriteUniversityAdminService {
         appwriteConfig.databaseId,
         appwriteConfig.ordersCollectionId,
         [
-          Query.greaterThanEqual('createdAt', previousStartDate.toISOString()),
-          Query.lessThan('createdAt', startDate.toISOString()),
-          Query.orderDesc('createdAt'),
+          Query.greaterThanEqual('$createdAt', previousStartDate.toISOString()),
+          Query.lessThan('$createdAt', startDate.toISOString()),
+          Query.orderDesc('$createdAt'),
           Query.limit(4000)
         ]
       );
@@ -511,7 +511,7 @@ export class AppwriteUniversityAdminService {
         appwriteConfig.databaseId,
         appwriteConfig.ordersCollectionId,
         [
-          Query.orderDesc('createdAt'),
+          Query.orderDesc('$createdAt'),
           Query.limit(4000) // Get recent orders to analyze
         ]
       );
@@ -595,7 +595,7 @@ export class AppwriteUniversityAdminService {
         appwriteConfig.databaseId,
         appwriteConfig.ordersCollectionId,
         [
-          Query.orderDesc('createdAt'),
+          Query.orderDesc('$createdAt'),
           Query.limit(4000) // Get recent orders for performance analysis
         ]
       );
@@ -702,7 +702,7 @@ export class AppwriteUniversityAdminService {
 
       // Build orders query
       let queryFilters = [
-        Query.orderDesc('createdAt'),
+        Query.orderDesc('$createdAt'),
         Query.limit(limitCount * 2) // Get extra to filter by university vendors
       ];
       
@@ -716,9 +716,9 @@ export class AppwriteUniversityAdminService {
         console.log(`📅 Using date range: ${customDateRange.from.toISOString()} to ${endDate.toISOString()}`);
         
         queryFilters = [
-          Query.greaterThanEqual('createdAt', customDateRange.from.toISOString()),
-          Query.lessThanEqual('createdAt', endDate.toISOString()),
-          Query.orderDesc('createdAt'),
+          Query.greaterThanEqual('$createdAt', customDateRange.from.toISOString()),
+          Query.lessThanEqual('$createdAt', endDate.toISOString()),
+          Query.orderDesc('$createdAt'),
           Query.limit(limitCount * 2) // Get extra to filter by university vendors
         ];
       } else {
@@ -783,7 +783,7 @@ export class AppwriteUniversityAdminService {
       
       // Get orders, we'll filter by vendor after fetching
       let queryFilters = [
-        Query.orderDesc('createdAt'),
+        Query.orderDesc('$createdAt'),
         Query.limit(4000) // Limit for performance
       ];
       
@@ -791,7 +791,7 @@ export class AppwriteUniversityAdminService {
         // If specific vendor requested, only get that vendor's orders
         queryFilters = [
           Query.equal('vendorId', vendorId),
-          Query.orderDesc('createdAt'),
+          Query.orderDesc('$createdAt'),
           Query.limit(4000)
         ];
       }
