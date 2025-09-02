@@ -442,7 +442,8 @@ async function createDemoStudents() {
       log(`✅ Student created: ${studentData.fullName} (${user.$id})`, 'success');
     } catch (error) {
       if (error.code === 409) {
-        log(`⚠️  Student already exists: ${studentData.email}`, 'warning');
+        log(`⚠️  Student user already exists: ${studentData.email}`, 'warning');
+        log(`ℹ️  If orders fail to create, existing students should be found in database query`, 'info');
       } else {
         log(`❌ Error creating student ${studentData.email}: ${error.message}`, 'error');
       }
