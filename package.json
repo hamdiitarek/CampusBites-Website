@@ -24,9 +24,9 @@
     "appwrite:setup": "node scripts/setupAppwriteSchema.cjs setup",
     "appwrite:verify": "node scripts/verifyAppwriteSchema.cjs",
     "appwrite:test": "node scripts/test_appwrite_integration.cjs",
-    "appwrite:demo": "node scripts/setup_demo_data_appwrite.js setup",
-    "appwrite:demo-clean": "node scripts/setup_demo_data_appwrite.js clean",
-    "appwrite:demo-reset": "node scripts/setup_demo_data_appwrite.js reset",
+    "appwrite:demo": "node scripts/setup_demo_data_appwrite.cjs setup",
+    "appwrite:demo-clean": "node scripts/setup_demo_data_appwrite.cjs clean",
+    "appwrite:demo-reset": "node scripts/setup_demo_data_appwrite.cjs reset",
     "auth:verify": "node scripts/verifyAuthMigration.cjs"
   },
   "dependencies": {
