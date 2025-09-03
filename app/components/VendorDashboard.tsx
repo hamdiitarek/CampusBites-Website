@@ -49,6 +49,8 @@ import {
   VendorOrderTrend,
   VendorCustomerInsight
 } from '@/lib/appwriteVendorService';
+import { VendorAnalyticsCharts } from './vendor/VendorAnalyticsCharts';
+import { VendorOrderManagement } from './vendor/VendorOrderManagement';
 import { databases, appwriteConfig } from '@/lib/appwrite';
 import { Query } from 'appwrite';
 
@@ -256,6 +258,34 @@ export function VendorDashboard() {
   // Format percentage
   const formatPercentage = (value: number) => {
     return `${value.toFixed(1)}%`;
+  };
+
+  // Handle order status updates
+  const handleOrderStatusUpdate = async (orderId: string, newStatus: string) => {
+    try {
+      await AppwriteVendorService.updateOrderStatus(orderId, newStatus as any);
+      // Refresh orders after update
+      await refreshOrders();
+      // Also refresh metrics
+      if (vendorId) {
+        const updatedMetrics = await AppwriteVendorService.getVendorMetrics(vendorId);
+        setMetrics(updatedMetrics);
+      }
+    } catch (error) {
+      console.error('Error updating order status:', error);
+      throw error;
+    }
+  };
+
+  // Refresh orders function
+  const refreshOrders = async () => {
+    if (!vendorId) return;
+    try {
+      const ordersResult = await AppwriteVendorService.getVendorOrders(vendorId, orderStatusFilter, 20);
+      setRecentOrders(ordersResult.orders);
+    } catch (error) {
+      console.error('Error refreshing orders:', error);
+    }
   };
 
   if (!vendorId) {
@@ -553,161 +583,28 @@ export function VendorDashboard() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <Card>
-                <CardHeader>
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <div>
-                      <CardTitle className="text-lg">Recent Orders</CardTitle>
-                      <CardDescription>Manage and track your orders</CardDescription>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <select
-                        value={orderStatusFilter}
-                        onChange={(e) => setOrderStatusFilter(e.target.value)}
-                        className="border rounded-md px-3 py-2 text-sm"
-                      >
-                        <option value="all">All Orders</option>
-                        <option value="pending">Pending</option>
-                        <option value="confirmed">Confirmed</option>
-                        <option value="ready">Ready</option>
-                        <option value="completed">Completed</option>
-                        <option value="cancelled">Cancelled</option>
-                      </select>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {loading ? (
-                    <div className="space-y-4">
-                      {[...Array(5)].map((_, i) => (
-                        <div key={i} className="h-20 bg-gray-100 rounded-lg animate-pulse" />
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {recentOrders.map((order, index) => (
-                        <motion.div
-                          key={order.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.3, delay: index * 0.1 }}
-                          className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
-                        >
-                          <div className="flex items-center gap-4">
-                            <div className="text-sm font-mono text-gray-500">
-                              #{order.id.slice(-6).toUpperCase()}
-                            </div>
-                            <div>
-                              <div className="font-medium text-gray-900">
-                                {order.items.length} items • {formatCurrency(order.total)}
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                {new Date(order.createdAt).toLocaleString()}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <OrderStatusBadge status={order.status} />
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm">
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem>View Details</DropdownMenuItem>
-                                {order.status === 'pending' && (
-                                  <DropdownMenuItem>Confirm Order</DropdownMenuItem>
-                                )}
-                                {order.status === 'confirmed' && (
-                                  <DropdownMenuItem>Mark Ready</DropdownMenuItem>
-                                )}
-                                {order.status === 'ready' && (
-                                  <DropdownMenuItem>Mark Completed</DropdownMenuItem>
-                                )}
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        </motion.div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+              <VendorOrderManagement 
+                orders={recentOrders}
+                loading={loading}
+                onOrderUpdate={handleOrderStatusUpdate}
+                onRefresh={refreshOrders}
+              />
             </motion.div>
           </TabsContent>
 
           {/* Analytics Tab */}
           <TabsContent value="analytics" className="space-y-6">
-            {/* Order Trends by Hour */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="grid grid-cols-1 lg:grid-cols-2 gap-6"
             >
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Clock className="h-5 w-5" />
-                    Peak Hours Analysis
-                  </CardTitle>
-                  <CardDescription>Order volume by hour of day</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {loading ? (
-                    <div className="h-64 bg-gray-100 rounded-lg animate-pulse" />
-                  ) : (
-                    <ResponsiveContainer width="100%" height={250}>
-                      <BarChart data={orderTrends}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="hour" />
-                        <YAxis />
-                        <Tooltip />
-                        <Bar dataKey="orders" fill="#3B82F6" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <PieChart className="h-5 w-5" />
-                    Top Customers
-                  </CardTitle>
-                  <CardDescription>Your most valuable customers</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {loading ? (
-                    <div className="space-y-4">
-                      {[...Array(5)].map((_, i) => (
-                        <div key={i} className="h-12 bg-gray-100 rounded-lg animate-pulse" />
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {customerInsights?.topCustomers.map((customer, index) => (
-                        <div key={customer.id} className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                              <span className="text-sm font-medium">#{index + 1}</span>
-                            </div>
-                            <div>
-                              <div className="font-medium text-gray-900">{customer.name}</div>
-                              <div className="text-sm text-gray-500">{customer.totalOrders} orders</div>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="font-semibold text-gray-900">{formatCurrency(customer.totalSpent)}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+              <VendorAnalyticsCharts 
+                popularItems={popularItems}
+                revenueData={revenueData}
+                orderTrends={orderTrends}
+                loading={loading}
+              />
             </motion.div>
           </TabsContent>
 
