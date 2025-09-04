@@ -7,14 +7,14 @@ const nextConfig = {
   // Caching Optimizations
   // ========================================
   
-  // Experimental features for better caching
-  experimental: {
-    // Configure staleTimes for router cache
-    staleTimes: {
-      dynamic: 30,        // 30 seconds for dynamic pages
-      static: 300,        // 5 minutes for static pages
-    }
-  },
+  // Experimental features for better caching - temporarily disabled to debug build issue
+  // experimental: {
+  //   // Configure staleTimes for router cache
+  //   staleTimes: {
+  //     dynamic: 30,        // 30 seconds for dynamic pages
+  //     static: 300,        // 5 minutes for static pages
+  //   }
+  // },
   
   // ========================================
   // Static Generation Configuration

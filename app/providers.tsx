@@ -14,20 +14,9 @@ export default function Providers({
 }: {
   children: React.ReactNode;
 }) {
-  const [queryClient] = useState(() => new QueryClient());
-
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <LanguageProvider>
-          <AuthProvider>
-            <HTMLAttributeUpdater />
-            <Toaster />
-            <Sonner />
-            {children}
-          </AuthProvider>
-        </LanguageProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <div>
+      {children}
+    </div>
   );
 }
