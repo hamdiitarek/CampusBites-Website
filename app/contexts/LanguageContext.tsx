@@ -344,7 +344,12 @@ const translations: Translations = {
   selectNewRoleForUser: { en: "Select a new role for this user", ar: "اختر دوراً جديداً لهذا المستخدم" },
   newRole: { en: "New Role", ar: "الدور الجديد" },
   cancel: { en: "Cancel", ar: "إلغاء" },
-  updateRole: { en: "Update Role", ar: "تحديث الدور" }
+  updateRole: { en: "Update Role", ar: "تحديث الدور" },
+  
+  // Vendor Dashboard Specific
+  customerBase: { en: "Customer Base", ar: "قاعدة العملاء" },
+  refreshData: { en: "Refresh Data", ar: "تحديث البيانات" },
+  exportData: { en: "Export Data", ar: "تصدير البيانات" }
 };
 
 interface LanguageContextType {

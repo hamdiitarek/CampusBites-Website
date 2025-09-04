@@ -1447,7 +1447,7 @@ export function UniversityAdminDashboard() {
                               className="w-2 h-2 bg-green-500 rounded-full"
                               animate={{ scale: [1, 1.2, 1] }}
                               transition={{ duration: 2, repeat: Infinity }}
-                              title="Real-time data"
+                              title={t('realTimeData')}
                             />
                           )}
                         </div>
@@ -1580,7 +1580,7 @@ export function UniversityAdminDashboard() {
                     <div className="relative">
                       <Search className="absolute left-3 top-3 h-3 w-3 md:h-4 md:w-4 text-gray-400" />
                       <Input
-                        placeholder="Search students by name or ID..."
+                        placeholder={t('searchStudentsPlaceholder')}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="pl-8 md:pl-10 text-xs md:text-sm transition-all duration-200 focus:ring-2 focus:ring-primary/20"

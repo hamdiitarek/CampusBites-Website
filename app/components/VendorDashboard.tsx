@@ -157,7 +157,7 @@ function OrderStatusBadge({ status }: { status: string }) {
 }
 
 export function VendorDashboard() {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
@@ -343,19 +343,19 @@ export function VendorDashboard() {
           >
             <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 bg-white p-1 rounded-lg shadow-sm border">
               <TabsTrigger value="overview" className="flex-1 min-w-fit text-xs sm:text-sm px-3 py-2">
-                Overview
+                {t('overview')}
               </TabsTrigger>
               <TabsTrigger value="orders" className="flex-1 min-w-fit text-xs sm:text-sm px-3 py-2">
-                Orders
+                {t('orders')}
               </TabsTrigger>
               <TabsTrigger value="analytics" className="flex-1 min-w-fit text-xs sm:text-sm px-3 py-2">
-                Analytics
+                {t('analytics')}
               </TabsTrigger>
               <TabsTrigger value="menu" className="flex-1 min-w-fit text-xs sm:text-sm px-3 py-2">
-                Menu
+                {t('menu')}
               </TabsTrigger>
               <TabsTrigger value="customers" className="flex-1 min-w-fit text-xs sm:text-sm px-3 py-2">
-                Customers
+                {t('customers')}
               </TabsTrigger>
             </TabsList>
           </motion.div>
@@ -370,28 +370,28 @@ export function VendorDashboard() {
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
             >
               <MetricCard
-                title="Total Revenue"
+                title={t('totalRevenue')}
                 value={metrics ? formatCurrency(metrics.totalRevenue) : '0'}
                 icon={DollarSign}
                 color="bg-green-500"
                 loading={loading}
               />
               <MetricCard
-                title="Total Orders"
+                title={t('totalOrders')}
                 value={metrics ? metrics.totalOrders.toString() : '0'}
                 icon={ShoppingCart}
                 color="bg-blue-500"
                 loading={loading}
               />
               <MetricCard
-                title="Average Order Value"
+                title={t('averageOrderValue')}
                 value={metrics ? formatCurrency(metrics.averageOrderValue) : '0'}
                 icon={TrendingUp}
                 color="bg-purple-500"
                 loading={loading}
               />
               <MetricCard
-                title="Completion Rate"
+                title={t('completionRate')}
                 value={metrics ? formatPercentage(metrics.completionRate) : '0%'}
                 icon={Target}
                 color="bg-orange-500"
@@ -410,21 +410,21 @@ export function VendorDashboard() {
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Calendar className="h-5 w-5" />
-                    Today's Performance
+                    {t('todaysPerformance')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Orders Today</span>
+                      <span className="text-gray-600">{t('ordersToday')}</span>
                       <span className="font-semibold">{metrics?.todayOrders || 0}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Revenue Today</span>
+                      <span className="text-gray-600">{t('revenueToday')}</span>
                       <span className="font-semibold">{formatCurrency(metrics?.todayRevenue || 0)}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Pending Orders</span>
+                      <span className="text-gray-600">{t('pendingOrders')}</span>
                       <span className="font-semibold text-orange-600">{metrics?.pendingOrders || 0}</span>
                     </div>
                   </div>
@@ -435,7 +435,7 @@ export function VendorDashboard() {
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Timer className="h-5 w-5" />
-                    Response Time
+                    {t('responseTime')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -443,9 +443,9 @@ export function VendorDashboard() {
                     <div className="text-3xl font-bold text-blue-600 mb-2">
                       {metrics ? Math.round(metrics.responseTime) : 0}
                     </div>
-                    <div className="text-gray-600">minutes average</div>
+                    <div className="text-gray-600">{t('minutesAverage')}</div>
                     <div className="mt-4 text-sm text-gray-500">
-                      Time to confirm orders
+                      {t('timeToConfirmOrders')}
                     </div>
                   </div>
                 </CardContent>
@@ -455,7 +455,7 @@ export function VendorDashboard() {
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Users className="h-5 w-5" />
-                    Customer Base
+                    {t('customerBase')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -533,9 +533,9 @@ export function VendorDashboard() {
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Star className="h-5 w-5" />
-                    Popular Menu Items
+                    {t('popularMenuItems')}
                   </CardTitle>
-                  <CardDescription>Your best-selling items</CardDescription>
+                  <CardDescription>{t('bestSellingItems')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {loading ? (
@@ -564,7 +564,7 @@ export function VendorDashboard() {
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="font-semibold text-gray-900">{item.totalSold} sold</div>
+                            <div className="font-semibold text-gray-900">{item.totalSold} {t('sold')}</div>
                             <div className="text-sm text-gray-500">{formatCurrency(item.revenue)}</div>
                           </div>
                         </motion.div>
