@@ -453,7 +453,7 @@ export function SuperAdminDashboard() {
         <div className="flex items-center justify-center min-h-[50vh]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading dashboard...</p>
+            <p className="text-muted-foreground">{t('loadingDashboardData')}</p>
           </div>
         </div>
       </SuperAdminLayout>
@@ -462,8 +462,8 @@ export function SuperAdminDashboard() {
 
   return (
     <SuperAdminLayout
-      title="Super Admin Dashboard"
-      description="Complete oversight and management of the entire platform"
+      title={t('superAdminDashboard')}
+      description={t('completeOversightDesc')}
     >
       <div className="space-y-6">
         {/* Quick Stats Overview */}
@@ -473,7 +473,7 @@ export function SuperAdminDashboard() {
               <div className="flex items-center">
                 <Users className="h-8 w-8 text-blue-600" />
                 <div className={`${isRTL ? 'mr-4' : 'ml-4'}`}>
-                  <p className="text-sm font-medium text-gray-600">Total Users</p>
+                  <p className="text-sm font-medium text-gray-600">{t('totalUsers')}</p>
                   <p className="text-2xl font-bold text-gray-900">{dashboardStats.totalUsers || 0}</p>
                 </div>
               </div>
@@ -485,7 +485,7 @@ export function SuperAdminDashboard() {
               <div className="flex items-center">
                 <Store className="h-8 w-8 text-green-600" />
                 <div className={`${isRTL ? 'mr-4' : 'ml-4'}`}>
-                  <p className="text-sm font-medium text-gray-600">Vendors</p>
+                  <p className="text-sm font-medium text-gray-600">{t('dashboardVendors')}</p>
                   <p className="text-2xl font-bold text-gray-900">{dashboardStats.totalVendors || 0}</p>
                 </div>
               </div>
@@ -497,7 +497,7 @@ export function SuperAdminDashboard() {
               <div className="flex items-center">
                 <ShoppingCart className="h-8 w-8 text-purple-600" />
                 <div className={`${isRTL ? 'mr-4' : 'ml-4'}`}>
-                  <p className="text-sm font-medium text-gray-600">Orders</p>
+                  <p className="text-sm font-medium text-gray-600">{t('orders')}</p>
                   <p className="text-2xl font-bold text-gray-900">{dashboardStats.totalOrders || 0}</p>
                 </div>
               </div>
@@ -509,7 +509,7 @@ export function SuperAdminDashboard() {
               <div className="flex items-center">
                 <Building2 className="h-8 w-8 text-orange-600" />
                 <div className={`${isRTL ? 'mr-4' : 'ml-4'}`}>
-                  <p className="text-sm font-medium text-gray-600">Universities</p>
+                  <p className="text-sm font-medium text-gray-600">{t('universities')}</p>
                   <p className="text-2xl font-bold text-gray-900">{dashboardStats.totalUniversities || 0}</p>
                 </div>
               </div>
@@ -523,10 +523,10 @@ export function SuperAdminDashboard() {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Activity className="h-5 w-5 mr-2" />
-                Recent Activity
+                {t('recentActivity')}
               </CardTitle>
               <CardDescription>
-                Latest platform activities and alerts
+                {t('latestPlatformActivities')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -571,16 +571,16 @@ export function SuperAdminDashboard() {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <TrendingUp className="h-5 w-5 mr-2" />
-                Platform Performance
+                {t('platformPerformance')}
               </CardTitle>
               <CardDescription>
-                Key metrics and performance indicators
+                {t('keyMetricsDesc')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Active Users (24h)</span>
+                  <span className="text-sm font-medium">{t('activeUsers24h')}</span>
                   <span className="text-sm text-green-600">+5.2%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
@@ -588,7 +588,7 @@ export function SuperAdminDashboard() {
                 </div>
                 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Order Success Rate</span>
+                  <span className="text-sm font-medium">{t('orderSuccessRate')}</span>
                   <span className="text-sm text-green-600">98.5%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
@@ -596,7 +596,7 @@ export function SuperAdminDashboard() {
                 </div>
                 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">System Uptime</span>
+                  <span className="text-sm font-medium">{t('systemUptime')}</span>
                   <span className="text-sm text-green-600">99.9%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
@@ -610,9 +610,9 @@ export function SuperAdminDashboard() {
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="users">Users Management</TabsTrigger>
-            <TabsTrigger value="universities">Universities</TabsTrigger>
+            <TabsTrigger value="overview">{t('overview')}</TabsTrigger>
+            <TabsTrigger value="users">{t('usersManagement')}</TabsTrigger>
+            <TabsTrigger value="universities">{t('universities')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -620,9 +620,9 @@ export function SuperAdminDashboard() {
               {/* Universities Overview */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Universities Overview</CardTitle>
+                  <CardTitle>{t('universitiesOverview')}</CardTitle>
                   <CardDescription>
-                    Current universities and their user counts
+                    {t('currentUniversitiesDesc')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -632,13 +632,13 @@ export function SuperAdminDashboard() {
                         <div>
                           <h3 className="font-semibold">{university.name}</h3>
                           <div className="flex space-x-4 text-sm text-gray-600 mt-1">
-                            <span>{university.studentsCount} Students</span>
-                            <span>{university.vendorsCount} Vendors</span>
-                            <span>{university.adminsCount} Admins</span>
+                            <span>{university.studentsCount} {t('students')}</span>
+                            <span>{university.vendorsCount} {t('vendors')}</span>
+                            <span>{university.adminsCount} {t('admins')}</span>
                           </div>
                         </div>
                         <Button variant="outline" size="sm">
-                          View Details
+                          {t('viewDetails')}
                         </Button>
                       </div>
                     ))}
@@ -649,9 +649,9 @@ export function SuperAdminDashboard() {
               {/* Recent Activity */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Recent Activity</CardTitle>
+                  <CardTitle>{t('recentActivity')}</CardTitle>
                   <CardDescription>
-                    Latest user registrations and activities
+                    {t('latestUserRegistrations')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -689,7 +689,7 @@ export function SuperAdminDashboard() {
                     <div className="relative">
                       <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
-                        placeholder="Search users by name or email..."
+                        placeholder={t('searchUsersPlaceholder')}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="pl-10"
@@ -699,10 +699,10 @@ export function SuperAdminDashboard() {
                   
                   <Select value={selectedUniversity} onValueChange={setSelectedUniversity}>
                     <SelectTrigger className="w-[200px]">
-                      <SelectValue placeholder="Select University" />
+                      <SelectValue placeholder={t('selectUniversity')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Universities</SelectItem>
+                      <SelectItem value="all">{t('allUniversities')}</SelectItem>
                       {universities.map((university) => (
                         <SelectItem key={university.id} value={university.name}>
                           {university.name}
@@ -713,14 +713,14 @@ export function SuperAdminDashboard() {
 
                   <Select value={selectedRole} onValueChange={setSelectedRole}>
                     <SelectTrigger className="w-[150px]">
-                      <SelectValue placeholder="Select Role" />
+                      <SelectValue placeholder={t('selectUserRole')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Roles</SelectItem>
-                      <SelectItem value="student">Students</SelectItem>
-                      <SelectItem value="vendor">Vendors</SelectItem>
-                      <SelectItem value="admin">Admins</SelectItem>
-                      <SelectItem value="super-admin">Super Admins</SelectItem>
+                      <SelectItem value="all">{t('allRoles')}</SelectItem>
+                      <SelectItem value="student">{t('students')}</SelectItem>
+                      <SelectItem value="vendor">{t('vendors')}</SelectItem>
+                      <SelectItem value="admin">{t('admins')}</SelectItem>
+                      <SelectItem value="super-admin">{t('superAdmins')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -730,9 +730,9 @@ export function SuperAdminDashboard() {
             {/* Users Table */}
             <Card>
               <CardHeader>
-                <CardTitle>Users ({filteredUsers.length})</CardTitle>
+                <CardTitle>{t('usersCount').replace('{count}', filteredUsers.length.toString())}</CardTitle>
                 <CardDescription>
-                  Manage all platform users
+                  {t('managePlatformUsers')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -740,7 +740,7 @@ export function SuperAdminDashboard() {
                   <div className="flex items-center justify-center py-8">
                     <div className="text-center">
                       <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
-                      <p className="text-sm text-muted-foreground">Loading users...</p>
+                      <p className="text-sm text-muted-foreground">{t('loadingUsers')}</p>
                     </div>
                   </div>
                 ) : (
@@ -770,7 +770,7 @@ export function SuperAdminDashboard() {
                               ${user.walletBalance || 0}
                             </p>
                             <p className="text-xs text-gray-500">
-                              Joined: {formatDate(user.createdAt)}
+                              {t('joined')}: {formatDate(user.createdAt)}
                             </p>
                           </div>
                           <DropdownMenu>
@@ -782,26 +782,26 @@ export function SuperAdminDashboard() {
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => handleViewUserProfile(user.id)}>
                                 <UserCheck className="h-4 w-4 mr-2" />
-                                View Profile
+                                {t('viewProfile')}
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleViewUserOrders(user.id)}>
                                 <ShoppingCart className="h-4 w-4 mr-2" />
-                                View Orders
+                                {t('viewOrders')}
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleChangeUserRole(user.id)}>
                                 <Shield className="h-4 w-4 mr-2" />
-                                Change Role
+                                {t('changeRole')}
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleResetUserPassword(user.id)}>
                                 <AlertCircle className="h-4 w-4 mr-2" />
-                                Reset Password
+                                {t('resetPassword')}
                               </DropdownMenuItem>
                               <DropdownMenuItem 
                                 className="text-red-600"
                                 onClick={() => handleSuspendUser(user.id)}
                               >
                                 <XCircle className="h-4 w-4 mr-2" />
-                                Suspend User
+                                {t('suspendUser')}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -811,7 +811,7 @@ export function SuperAdminDashboard() {
                     
                     {filteredUsers.length === 0 && (
                       <div className="text-center py-8">
-                        <p className="text-muted-foreground">No users found matching your criteria.</p>
+                        <p className="text-muted-foreground">{t('noUsersFound')}</p>
                       </div>
                     )}
                   </div>
@@ -823,9 +823,9 @@ export function SuperAdminDashboard() {
           <TabsContent value="universities" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Universities Management</CardTitle>
+                <CardTitle>{t('universitiesManagement')}</CardTitle>
                 <CardDescription>
-                  Manage universities and their settings
+                  {t('manageUniversitiesDesc')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -839,24 +839,24 @@ export function SuperAdminDashboard() {
                             <div className="flex space-x-6 mt-2 text-sm text-gray-600">
                               <span className="flex items-center">
                                 <GraduationCap className="h-4 w-4 mr-1" />
-                                {university.studentsCount || 0} Students
+                                {university.studentsCount || 0} {t('students')}
                               </span>
                               <span className="flex items-center">
                                 <Store className="h-4 w-4 mr-1" />
-                                {university.vendorsCount || 0} Vendors
+                                {university.vendorsCount || 0} {t('vendors')}
                               </span>
                               <span className="flex items-center">
                                 <Shield className="h-4 w-4 mr-1" />
-                                {university.adminsCount || 0} Admins
+                                {university.adminsCount || 0} {t('admins')}
                               </span>
                             </div>
                           </div>
                           <div className="flex space-x-2">
                             <Button variant="outline" size="sm">
-                              View Details
+                              {t('viewDetails')}
                             </Button>
                             <Button variant="outline" size="sm">
-                              Settings
+                              {t('settings')}
                             </Button>
                           </div>
                         </div>
@@ -870,9 +870,9 @@ export function SuperAdminDashboard() {
             {/* Pending Vendor Approvals */}
             <Card>
               <CardHeader>
-                <CardTitle>Pending Vendor Approvals</CardTitle>
+                <CardTitle>{t('pendingVendorApprovals')}</CardTitle>
                 <CardDescription>
-                  Review and approve vendor applications
+                  {t('reviewVendorApplications')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -892,7 +892,7 @@ export function SuperAdminDashboard() {
                       
                       <div className="flex items-center space-x-2">
                         <Badge variant="outline" className="text-yellow-600">
-                          Pending
+                          {t('pending')}
                         </Badge>
                         <Button 
                           size="sm" 
@@ -901,7 +901,7 @@ export function SuperAdminDashboard() {
                           onClick={() => handleUpdateVendorApproval(vendor.id, true)}
                         >
                           <CheckCircle className="h-4 w-4 mr-1" />
-                          Approve
+                          {t('approve')}
                         </Button>
                         <Button 
                           size="sm" 
@@ -910,7 +910,7 @@ export function SuperAdminDashboard() {
                           onClick={() => handleUpdateVendorApproval(vendor.id, false)}
                         >
                           <XCircle className="h-4 w-4 mr-1" />
-                          Reject
+                          {t('reject')}
                         </Button>
                       </div>
                     </div>
@@ -918,7 +918,7 @@ export function SuperAdminDashboard() {
                   
                   {vendors.filter(vendor => !vendor.isApproved).length === 0 && (
                     <div className="text-center py-8">
-                      <p className="text-muted-foreground">No pending vendor approvals.</p>
+                      <p className="text-muted-foreground">{t('noPendingApprovals')}</p>
                     </div>
                   )}
                 </div>
@@ -940,9 +940,9 @@ export function SuperAdminDashboard() {
       }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>User Profile</DialogTitle>
+            <DialogTitle>{t('userProfile')}</DialogTitle>
             <DialogDescription>
-              Detailed information about the selected user
+              {t('detailedUserInfo')}
             </DialogDescription>
           </DialogHeader>
           
@@ -951,27 +951,27 @@ export function SuperAdminDashboard() {
               {/* Basic Information */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Full Name</label>
+                  <label className="text-sm font-medium">{t('fullName')}</label>
                   <p className="text-sm text-gray-600">{selectedUserDetails.fullName}</p>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Email</label>
+                  <label className="text-sm font-medium">{t('email')}</label>
                   <p className="text-sm text-gray-600">{selectedUserDetails.email}</p>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">University ID</label>
+                  <label className="text-sm font-medium">{t('universityId')}</label>
                   <p className="text-sm text-gray-600">{selectedUserDetails.universityId}</p>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">University</label>
+                  <label className="text-sm font-medium">{t('university')}</label>
                   <p className="text-sm text-gray-600">{selectedUserDetails.universityName}</p>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Phone Number</label>
-                  <p className="text-sm text-gray-600">{selectedUserDetails.phoneNumber || 'Not provided'}</p>
+                  <label className="text-sm font-medium">{t('phoneNumber')}</label>
+                  <p className="text-sm text-gray-600">{selectedUserDetails.phoneNumber || t('notProvided')}</p>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Role</label>
+                  <label className="text-sm font-medium">{t('role')}</label>
                   <div className="flex items-center space-x-2">
                     {getRoleIcon(selectedUserDetails.role)}
                     <Badge className={getRoleBadgeColor(selectedUserDetails.role)}>
@@ -980,11 +980,11 @@ export function SuperAdminDashboard() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Wallet Balance</label>
+                  <label className="text-sm font-medium">{t('walletBalance')}</label>
                   <p className="text-sm text-gray-600">${(selectedUserDetails.walletBalance || 0).toFixed(2)}</p>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Member Since</label>
+                  <label className="text-sm font-medium">{t('memberSince')}</label>
                   <p className="text-sm text-gray-600">{formatDate(selectedUserDetails.createdAt)}</p>
                 </div>
               </div>
