@@ -372,7 +372,7 @@ export async function getUserNotifications(userId: string): Promise<Notification
 export async function markNotificationAsRead(notificationId: string): Promise<void> {
   return updateDocument<Notification>(COLLECTIONS.NOTIFICATIONS, notificationId, {
     status: 'read',
-    readAt: Timestamp.now()
+    readAt: new Date().toISOString()
   });
 }
 

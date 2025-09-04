@@ -114,7 +114,6 @@ const nextConfig = {
     // Allowed image domains
     domains: [
       'images.unsplash.com',
-      'firebasestorage.googleapis.com',
       'campusbites.com'
     ],
     
@@ -147,12 +146,7 @@ const nextConfig = {
               priority: -10,
               chunks: 'all',
             },
-            firebase: {
-              test: /[\\/]node_modules[\\/](firebase|@firebase)[\\/]/,
-              name: 'firebase',
-              priority: 10,
-              chunks: 'all',
-            },
+
             react: {
               test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
               name: 'react',

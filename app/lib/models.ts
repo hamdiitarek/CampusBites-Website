@@ -13,7 +13,8 @@ export * from './models/database';
 import type { User, Order, Vendor, OrderItem, Notification } from './models/index';
 import { USER_ROLES, ORDER_STATUS, UNIVERSITY_DOMAINS } from './models/constants';
 import type { UserRole, OrderStatus } from './models/constants';
-import type { Timestamp } from 'firebase/firestore';
+// Removed Firebase Timestamp import since we're using Appwrite now
+// import type { Timestamp } from 'firebase/firestore';
 
 // ========================================
 // Utility Functions

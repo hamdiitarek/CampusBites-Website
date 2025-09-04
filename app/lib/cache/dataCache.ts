@@ -5,7 +5,8 @@
  */
 
 import { unstable_cache } from 'next/cache';
-import { SuperAdminService } from '../superAdminService';
+// Import Appwrite services
+// import { SuperAdminService } from '../superAdminService'; // Disabled Firebase service
 import { AppwriteUniversityAdminService } from '../appwriteUniversityAdminService';
 import type { UserData, VendorData, OrderData, UniversityData } from '../models';
 
@@ -57,7 +58,8 @@ export const getPersistedAllUsers = unstable_cache(
     searchTerm?: string
   ): Promise<UserData[]> => {
     console.log('🔄 Cache MISS: Fetching users from database');
-    return await SuperAdminService.getAllUsers(universityFilter, roleFilter, searchTerm);
+    // Placeholder implementation - return empty array since Firebase service is disabled
+    return [];
   },
   ['super-admin-users'],
   {
@@ -72,7 +74,8 @@ export const getPersistedAllUsers = unstable_cache(
 export const getPersistedAllVendors = unstable_cache(
   async (): Promise<VendorData[]> => {
     console.log('🔄 Cache MISS: Fetching vendors from database');
-    return await SuperAdminService.getAllVendors();
+    // Placeholder implementation - return empty array since Firebase service is disabled
+    return [];
   },
   ['super-admin-vendors'],
   {

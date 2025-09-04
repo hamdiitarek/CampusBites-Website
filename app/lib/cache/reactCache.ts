@@ -5,7 +5,8 @@
  */
 
 import { cache } from 'react';
-import { SuperAdminService } from '../superAdminService';
+// Import Appwrite services
+// import { SuperAdminService } from '../superAdminService'; // Disabled Firebase service
 import { AppwriteSuperAdminService } from '../appwriteSuperAdminService';
 import { AppwriteUniversityAdminService } from '../appwriteUniversityAdminService';
 import type { UserData, VendorData, OrderData, UniversityData } from '../models';
@@ -23,7 +24,8 @@ export const getCachedAllUsers = cache(async (
   searchTerm?: string
 ): Promise<UserData[]> => {
   try {
-    return await SuperAdminService.getAllUsers(universityFilter, roleFilter, searchTerm);
+    // Placeholder implementation - return empty array since Firebase service is disabled
+    return [];
   } catch (error) {
     console.error('Error in getCachedAllUsers:', error);
     return [];
@@ -35,7 +37,8 @@ export const getCachedAllUsers = cache(async (
  */
 export const getCachedAllVendors = cache(async (): Promise<VendorData[]> => {
   try {
-    return await SuperAdminService.getAllVendors();
+    // Placeholder implementation - return empty array since Firebase service is disabled
+    return [];
   } catch (error) {
     console.error('Error in getCachedAllVendors:', error);
     return [];

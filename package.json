@@ -15,7 +15,7 @@
     "migrate:categories:dry-run": "node scripts/addCategoryToOrders.js dry-run",
     "migrate:categories:rollback": "node scripts/addCategoryToOrders.js rollback",
     "demo:setup": "node scripts/setup_demo_data.js",
-    "demo:pull": "node scripts/pull_firebase_data.js",
+
     "dashboard:verify": "node scripts/verify_dashboard.js",
     "dashboard:test-fix": "node scripts/test_dashboard_fix.js",
     "cleanup:analyze": "node scripts/cleanup_invalid_orders.js analyze",
@@ -67,8 +67,6 @@
     "date-fns": "^3.6.0",
     "dotenv": "^17.2.1",
     "embla-carousel-react": "^8.6.0",
-    "firebase": "^12.0.0",
-    "firebase-admin": "^13.4.0",
     "framer-motion": "^12.16.0",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.462.0",

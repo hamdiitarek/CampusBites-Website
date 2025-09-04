@@ -230,7 +230,7 @@ export function OneTimeCodeManagement({ className }: OneTimeCodeManagementProps)
 
   const getCodeStatus = (code: OneTimeCode) => {
     if (!code.isActive) return 'deactivated';
-    if (code.expiresAt.toMillis() < Date.now()) return 'expired';
+    if (new Date(code.expiresAt).getTime() < Date.now()) return 'expired';
     if (code.usageCount >= code.maxUses) return 'used';
     return 'active';
   };

@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import { Timestamp } from "firebase/firestore"
+// Removed Firebase import since we're using Appwrite now
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))

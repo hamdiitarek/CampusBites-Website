@@ -6,10 +6,10 @@ import { databases, appwriteConfig, client } from '@/lib/appwrite';
 import { 
   AnalyticsData, 
   VendorPerformanceData, 
-  OrderData, 
   StudentEngagementData,
   FoodTrendData 
-} from '../../lib/universityAdminService';
+} from '../lib/appwriteUniversityAdminService';
+import type { Order as OrderData } from '../lib/models';
 
 interface RealtimeData {
   analytics: AnalyticsData | null;
@@ -208,11 +208,11 @@ export function useAppwriteRealtimeData(options: UseRealtimeDataOptions = {}): R
         total: order.total,
         status: order.status,
         paymentMethod: order.paymentMethod,
-        createdAt: createTimestamp(order.$createdAt),
-        confirmedAt: order.confirmedAt ? createTimestamp(order.confirmedAt) : undefined,
-        readyAt: order.readyAt ? createTimestamp(order.readyAt) : undefined,
-        completedAt: order.completedAt ? createTimestamp(order.completedAt) : undefined,
-        cancelledAt: order.cancelledAt ? createTimestamp(order.cancelledAt) : undefined,
+        createdAt: order.$createdAt,
+        confirmedAt: order.confirmedAt || undefined,
+        readyAt: order.readyAt || undefined,
+        completedAt: order.completedAt || undefined,
+        cancelledAt: order.cancelledAt || undefined,
         statusHistory: order.statusHistory || []
       }));
     } catch (error) {

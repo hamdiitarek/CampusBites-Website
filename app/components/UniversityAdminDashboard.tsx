@@ -1774,7 +1774,7 @@ export function UniversityAdminDashboard() {
                       
                       return (
                         <motion.div 
-                          key={order.id || `order-${index}-${order.vendorId}-${typeof order.createdAt === 'string' ? order.createdAt : order.createdAt?.seconds || Date.now()}`}
+                          key={order.id || `order-${index}-${order.vendorId}-${typeof order.createdAt === 'string' ? order.createdAt : (order.createdAt ? new Date(order.createdAt).getTime() : Date.now())}`}
                           initial={{ opacity: 0, y: 20, scale: 0.95 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: -20, scale: 0.95 }}

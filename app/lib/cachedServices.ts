@@ -11,8 +11,8 @@ import { SmartInvalidator } from './cache/cacheInvalidation';
 import { cacheMonitor } from './cache/cacheMonitoring';
 import { getCacheConfig } from './cache/cacheConfig';
 
-// Import original services - need to check if these methods exist
-import { SuperAdminService as OriginalSuperAdminService } from './superAdminService';
+// Import original services - temporarily disabled Firebase services
+// import { SuperAdminService as OriginalSuperAdminService } from './superAdminService';
 import { AppwriteUniversityAdminService as OriginalUniversityAdminService } from './appwriteUniversityAdminService';
 import type { UserData, VendorData, OrderData, UniversityData } from './models';
 
@@ -33,7 +33,8 @@ export class CachedSuperAdminService {
     const config = getCacheConfig();
     
     if (!config.enabled) {
-      return await OriginalSuperAdminService.getAllUsers(universityFilter, roleFilter, searchTerm);
+      // Placeholder implementation - return empty array for now since Firebase service is disabled
+      return [];
     }
 
     try {
@@ -57,8 +58,8 @@ export class CachedSuperAdminService {
       
     } catch (error) {
       console.error('Error in cached getAllUsers:', error);
-      // Fallback to direct service call
-      return await OriginalSuperAdminService.getAllUsers(universityFilter, roleFilter, searchTerm);
+      // Fallback to placeholder implementation since Firebase service is disabled
+      return [];
     }
   }
 
@@ -69,7 +70,8 @@ export class CachedSuperAdminService {
     const config = getCacheConfig();
     
     if (!config.enabled) {
-      return await OriginalSuperAdminService.getAllVendors();
+      // Placeholder implementation - return empty array for now since Firebase service is disabled
+      return [];
     }
 
     return await CacheHelpers.getWithFallback(
@@ -151,10 +153,7 @@ export class CachedSuperAdminService {
    */
   static async getAllComplaints() {
     try {
-      // Check if method exists on original service
-      if (typeof OriginalSuperAdminService.getAllComplaints === 'function') {
-        return await OriginalSuperAdminService.getAllComplaints();
-      }
+      // Check if method exists on Appwrite service - placeholder for now
       return [];
     } catch (error) {
       console.warn('getAllComplaints method not available:', error);

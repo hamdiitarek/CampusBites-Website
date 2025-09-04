@@ -4,7 +4,8 @@
  * Based on database.md architecture
  */
 
-import { Timestamp } from 'firebase/firestore';
+// Removed Firebase import since we're using Appwrite now
+// import { Timestamp } from 'firebase/firestore';
 import type {
   UserRole,
   OrderStatus,
@@ -52,10 +53,10 @@ export interface User {
   profileImageUrl?: string;     // Profile picture URL
   fcmToken?: string;            // Firebase Cloud Messaging token
   isSuspended?: boolean;        // User suspension status
-  suspendedAt?: Timestamp;      // Suspension date
+  suspendedAt?: Date | string;      // Suspension date
   suspensionReason?: string;    // Reason for suspension
-  createdAt?: Timestamp;        // Account creation date
-  updatedAt?: Timestamp;        // Last update timestamp
+  createdAt?: Date | string;        // Account creation date
+  updatedAt?: Date | string;        // Last update timestamp
 }
 
 // Legacy interface for backward compatibility
@@ -77,8 +78,8 @@ export interface University {
   phone?: string;              // Contact phone
   website?: string;            // University website
   isActive: boolean;           // University status
-  createdAt?: Timestamp;       // Registration date
-  updatedAt?: Timestamp;       // Last update
+  createdAt?: Date | string;       // Registration date
+  updatedAt?: Date | string;       // Last update
 }
 
 // University with user counts (for admin dashboards)
@@ -107,8 +108,8 @@ export interface Vendor {
   isOpen: boolean;             // Current operational status
   isApproved: boolean;         // Admin approval status
   isSuspended: boolean;        // Suspension status
-  createdAt?: Timestamp;       // Vendor registration date
-  updatedAt?: Timestamp;       // Last update
+  createdAt?: Date | string;       // Vendor registration date
+  updatedAt?: Date | string;       // Last update
 }
 
 // Legacy interface for backward compatibility
@@ -152,17 +153,17 @@ export interface Order {
   total: number;               // Total order amount
   status: OrderStatus;         // Order status
   paymentMethod: PaymentMethod; // Payment method used
-  createdAt: Timestamp | string; // Order creation time
-  updatedAt?: Timestamp | string; // Last status update
-  estimatedReadyTime?: Timestamp | string; // Estimated completion time
-  completedAt?: Timestamp | string; // Actual completion time
+  createdAt: Date | string; // Order creation time
+  updatedAt?: Date | string; // Last status update
+  estimatedReadyTime?: Date | string; // Estimated completion time
+  completedAt?: Date | string; // Actual completion time
   // Enhanced timestamp fields (Version 2.0 - may not exist in all orders)
-  confirmedAt?: Timestamp | string; // When vendor confirms order
-  readyAt?: Timestamp | string; // When order is ready for pickup
-  cancelledAt?: Timestamp | string; // When order is cancelled
+  confirmedAt?: Date | string; // When vendor confirms order
+  readyAt?: Date | string; // When order is ready for pickup
+  cancelledAt?: Date | string; // When order is cancelled
   statusHistory?: Array<{      // Track all status changes
     status: string;
-    timestamp: Timestamp | string;
+    timestamp: Date | string;
     updatedBy: string;
     note?: string;
   }>;
@@ -195,8 +196,8 @@ export interface Complaint {
   description: string;         // Detailed description
   status: ComplaintStatus;     // Complaint status
   priority?: 'low' | 'medium' | 'high'; // Priority level
-  createdAt: Timestamp;        // Creation time
-  resolvedAt?: Timestamp;      // Resolution time
+  createdAt: Date | string;        // Creation time
+  resolvedAt?: Date | string;      // Resolution time
   resolution?: string;         // Resolution description
   adminId?: string;            // Resolving admin ID
   attachments?: string[];      // File attachment URLs
@@ -214,9 +215,9 @@ export interface Notification {
   type: NotificationType;      // Notification category
   status: NotificationStatus;  // Delivery status
   data?: Record<string, any>;  // Additional payload data
-  createdAt: Timestamp;        // Creation time
-  readAt?: Timestamp;          // Read timestamp
-  expiresAt?: Timestamp;       // Expiration date
+  createdAt: Date | string;        // Creation time
+  readAt?: Date | string;          // Read timestamp
+  expiresAt?: Date | string;       // Expiration date
 }
 
 // ========================================
@@ -233,8 +234,8 @@ export interface Transaction {
   orderId?: string;            // Related order ID (if applicable)
   paymentMethod?: string;      // Payment method used
   externalTransactionId?: string; // External payment gateway ID
-  createdAt: Timestamp;        // Transaction timestamp
-  completedAt?: Timestamp;     // Completion timestamp
+  createdAt: Date | string;        // Transaction timestamp
+  completedAt?: Date | string;     // Completion timestamp
   metadata?: Record<string, any>; // Additional transaction data
 }
 
@@ -250,8 +251,8 @@ export interface Review {
   rating: number;              // Rating (1-5)
   comment?: string;            // Review text
   isPublic: boolean;           // Visibility setting
-  createdAt: Timestamp;        // Review timestamp
-  updatedAt?: Timestamp;       // Last edit timestamp
+  createdAt: Date | string;        // Review timestamp
+  updatedAt?: Date | string;       // Last edit timestamp
 }
 
 // ========================================
@@ -290,9 +291,9 @@ export interface OneTimeCode {
   universityId: string;        // University this code is linked to
   universityName: string;      // University name for display
   createdBy: string;           // Super admin who created the code
-  createdAt: Timestamp;        // Creation timestamp
-  expiresAt: Timestamp;        // Expiration timestamp
-  usedAt?: Timestamp;          // When the code was used (if used)
+  createdAt: Date | string;        // Creation timestamp
+  expiresAt: Date | string;        // Expiration timestamp
+  usedAt?: Date | string;          // When the code was used (if used)
   usedBy?: string;             // User ID who used the code
   isActive: boolean;           // Whether the code is still active
   maxUses: number;             // Maximum number of times it can be used (default: 1)
@@ -341,7 +342,7 @@ export interface DashboardStats {
   totalOneTimeCodes: number;   // Total one-time codes created
   activeOneTimeCodes: number;  // Active (unused) one-time codes
   period?: string;             // Stats period
-  lastUpdated?: Timestamp;     // Last calculation time
+  lastUpdated?: Date | string;     // Last calculation time
 }
 
 // ========================================
