@@ -6,6 +6,7 @@
 
 const { Client, Databases, Storage } = require('node-appwrite');
 const dotenv = require('dotenv');
+const { log, validateConfig } = require('./utils/logger.cjs');
 
 // Load environment variables
 dotenv.config({ path: '.env.local' });
@@ -43,39 +44,16 @@ if (config.apiKey) {
 const databases = new Databases(client);
 const storage = new Storage(client);
 
-function log(message, level = 'info') {
-  const timestamp = new Date().toISOString();
-  const colors = {
-    info: '\x1b[36m',    // Cyan
-    success: '\x1b[32m', // Green
-    warning: '\x1b[33m', // Yellow
-    error: '\x1b[31m',   // Red
-    reset: '\x1b[0m'     // Reset
-  };
-  
-  console.log(`${colors[level]}[${timestamp}] ${message}${colors.reset}`);
-}
-
 async function verifyConfiguration() {
   log('Verifying configuration...');
   
-  const issues = [];
-  
-  if (!config.projectId) {
-    issues.push('NEXT_PUBLIC_APPWRITE_PROJECT_ID is missing');
-  }
-  
-  if (!config.apiKey) {
-    issues.push('APPWRITE_API_KEY is missing (required for verification)');
-  }
-  
-  if (issues.length > 0) {
+  try {
+    validateConfig(config, ['projectId', 'apiKey']);
+  } catch (error) {
     log('Configuration issues found:', 'error');
-    issues.forEach(issue => log(`  - ${issue}`, 'error'));
-    throw new Error('Configuration validation failed');
+    log(`  - ${error.message}`, 'error');
+    throw error;
   }
-  
-  log('✓ Configuration validated', 'success');
 }
 
 async function verifyDatabase() {

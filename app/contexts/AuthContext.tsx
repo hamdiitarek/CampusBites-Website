@@ -19,7 +19,6 @@ import { USER_ROLES } from '@/lib/models';
 
 // Extend the User interface for auth-specific properties
 interface AuthUser extends User {
-  uid: string; // Firebase Auth UID (maps to id in User model)
   fcmToken?: string;
 }
 
@@ -52,7 +51,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           // Set basic user info immediately for faster UI response
           const basicUser: AuthUser = {
-            uid: firebaseUser.uid,
             id: firebaseUser.uid, // Map Firebase uid to our model's id
             email: firebaseUser.email || '',
             fullName: firebaseUser.displayName || '',
@@ -71,8 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const fullUser: AuthUser = {
               ...basicUser,
               ...cachedData.data,
-              uid: firebaseUser.uid, // Ensure Firebase uid is preserved
-              id: firebaseUser.uid, // Ensure our model id matches
+              id: firebaseUser.uid, // Ensure our model id matches Firebase uid
             };
             setUser(fullUser);
             setLoading(false); // Now we have complete data
@@ -92,7 +89,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             
             const fullUser: AuthUser = {
               ...basicUser,
-              uid: firebaseUser.uid,
               id: firebaseUser.uid,
               role: userData.role as UserRole,
               fullName: userData.fullName || firebaseUser.displayName || '',
@@ -114,7 +110,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.error('Error fetching user role:', error);
           // Still set basic user info even if Firestore fails
           setUser({
-            uid: firebaseUser.uid,
             id: firebaseUser.uid,
             email: firebaseUser.email || '',
             fullName: firebaseUser.displayName || '',
@@ -261,7 +256,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         const refreshedUser: AuthUser = {
           ...user,
-          uid: user.uid, // Preserve Firebase UID
+          id: user.id, // Preserve user ID
           role: userData.role as 'student' | 'vendor' | 'admin' | 'super-admin' | undefined,
           fullName: userData.fullName,
           phoneNumber: userData.phoneNumber,
