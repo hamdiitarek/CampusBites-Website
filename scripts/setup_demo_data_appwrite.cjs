@@ -16,6 +16,7 @@
 
 const { Client, Databases, Users, Account, ID } = require('node-appwrite');
 const dotenv = require('dotenv');
+const { log, validateConfig } = require('./utils/logger.cjs');
 
 // Load environment variables
 dotenv.config({ path: '.env.local' });
@@ -358,27 +359,16 @@ const demoAdmins = [
 ];
 
 // Utility functions
-function log(message, level = 'info') {
-  const timestamp = new Date().toISOString();
-  const colors = {
-    info: '\x1b[36m',    // Cyan
-    success: '\x1b[32m', // Green
-    warning: '\x1b[33m', // Yellow
-    error: '\x1b[31m',   // Red
-    reset: '\x1b[0m'     // Reset
-  };
-  
-  console.log(`${colors[level]}[${timestamp}] ${message}${colors.reset}`);
-}
 
-function validateConfig() {
-  if (!config.projectId) {
-    throw new Error('NEXT_PUBLIC_APPWRITE_PROJECT_ID is required');
+function getValidatedConfig() {
+  try {
+    validateConfig(config, ['projectId', 'apiKey']);
+    return config;
+  } catch (error) {
+    log('Configuration validation failed:', 'error');
+    log(`  - ${error.message}`, 'error');
+    throw error;
   }
-  if (!config.apiKey) {
-    throw new Error('APPWRITE_API_KEY is required');
-  }
-  log('✅ Configuration validated');
 }
 
 // Function to create university record (skip if exists)
