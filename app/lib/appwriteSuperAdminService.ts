@@ -621,7 +621,7 @@ export class AppwriteSuperAdminService {
         orders.map(async (order) => {
           let userDetails = null;
           let vendorDetails = null;
-          let universityDetails = null;
+          const universityDetails = null;
           
           // Get user details
           if (order.userId) {

@@ -6,15 +6,15 @@ import { databases, appwriteConfig, client } from '@/lib/appwrite';
 import { 
   AnalyticsData, 
   VendorPerformanceData, 
-  OrderData, 
   StudentEngagementData,
   FoodTrendData 
-} from '../../lib/universityAdminService';
+} from '@/lib/appwriteUniversityAdminService';
+import type { Order } from '@/lib/models';
 
 interface RealtimeData {
   analytics: AnalyticsData | null;
   vendorPerformance: VendorPerformanceData[];
-  recentOrders: OrderData[];
+  recentOrders: Order[];
   studentEngagement: StudentEngagementData | null;
   loading: boolean;
   error: string | null;
@@ -184,7 +184,7 @@ export function useAppwriteRealtimeData(options: UseRealtimeDataOptions = {}): R
   };
 
   // Fetch recent orders
-  const fetchRecentOrders = async (): Promise<OrderData[]> => {
+  const fetchRecentOrders = async (): Promise<Order[]> => {
     try {
       const queries = universityName 
         ? [Query.equal('universityName', universityName)] // TODO: Add university filter to orders

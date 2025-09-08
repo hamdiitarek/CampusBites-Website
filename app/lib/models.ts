@@ -13,7 +13,16 @@ export * from './models/database';
 import type { User, Order, Vendor, OrderItem, Notification } from './models/index';
 import { USER_ROLES, ORDER_STATUS, UNIVERSITY_DOMAINS } from './models/constants';
 import type { UserRole, OrderStatus } from './models/constants';
-import type { Timestamp } from 'firebase/firestore';
+// Timestamp type for database operations (compatible with both Firebase and Appwrite)
+export interface Timestamp {
+  toDate(): Date;
+  seconds: number;
+  nanoseconds: number;
+  toMillis(): number;
+  toJSON(): any;
+  isEqual(other: any): boolean;
+  valueOf(): string;
+}
 
 // ========================================
 // Utility Functions
