@@ -1,10 +1,20 @@
 /**
  * Campus Bites - Database Models
- * TypeScript interfaces and types for Firestore collections
+ * TypeScript interfaces and types for database collections
  * Based on database.md architecture
  */
 
-import { Timestamp } from 'firebase/firestore';
+// Generic timestamp interface (compatible with both Firebase and Appwrite)
+export interface Timestamp {
+  toDate(): Date;
+  seconds: number;
+  nanoseconds: number;
+  toMillis(): number;
+  toJSON(): any;
+  isEqual(other: any): boolean;
+  valueOf(): string;
+}
+
 import type {
   UserRole,
   OrderStatus,
