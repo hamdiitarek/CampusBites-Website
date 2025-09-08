@@ -58,8 +58,8 @@ export interface User {
   updatedAt?: Timestamp;        // Last update timestamp
 }
 
-// Legacy interface for backward compatibility
-export interface UserData extends User {}
+// Legacy interface for backward compatibility - inherits all User properties
+export type UserData = User;
 
 // ========================================
 // University Models
@@ -112,7 +112,8 @@ export interface Vendor {
 }
 
 // Legacy interface for backward compatibility
-export interface VendorData extends Vendor {}
+// Legacy interface for backward compatibility - inherits all Vendor properties
+export type VendorData = Vendor;
 
 // ========================================
 // Menu Models
@@ -170,7 +171,8 @@ export interface Order {
 }
 
 // Legacy interface for backward compatibility
-export interface OrderData extends Order {}
+// Legacy interface for backward compatibility - inherits all Order properties
+export type OrderData = Order;
 
 // Enhanced order with additional details (for admin views)
 export interface EnrichedOrder extends Order {
@@ -213,7 +215,7 @@ export interface Notification {
   body: string;                // Notification content
   type: NotificationType;      // Notification category
   status: NotificationStatus;  // Delivery status
-  data?: Record<string, any>;  // Additional payload data
+  data?: Record<string, string | number | boolean>;  // Additional payload data
   createdAt: Timestamp;        // Creation time
   readAt?: Timestamp;          // Read timestamp
   expiresAt?: Timestamp;       // Expiration date
@@ -235,7 +237,7 @@ export interface Transaction {
   externalTransactionId?: string; // External payment gateway ID
   createdAt: Timestamp;        // Transaction timestamp
   completedAt?: Timestamp;     // Completion timestamp
-  metadata?: Record<string, any>; // Additional transaction data
+  metadata?: Record<string, string | number | boolean>; // Additional transaction data
 }
 
 // ========================================
