@@ -73,6 +73,28 @@ export default function EnglishHome() {
           })
         }}
       />
+
+      {/* Chatwoot Live Chat Widget */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
+            window.chatwootSettings = {"position":"right","type":"expanded_bubble","launcherTitle":"Chat with us"};
+            (function(d,t) {
+              var BASE_URL="https://support.campusbites.app";
+              var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+              g.src=BASE_URL+"/packs/js/sdk.js";
+              g.async = true;
+              s.parentNode.insertBefore(g,s);
+              g.onload=function(){
+                window.chatwootSDK && window.chatwootSDK.run({
+                  websiteToken: 'iPue6ET7A6AZxn7KJh9q1ejA',
+                  baseUrl: BASE_URL
+                });
+              }
+            })(document,"script");
+          `
+        }}
+      />
     </>
   );
 }

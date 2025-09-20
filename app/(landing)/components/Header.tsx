@@ -55,8 +55,12 @@ const Header = () => {
         <div className="flex justify-between items-center py-4">
           {/* Logo Section */}
           <div className={`flex items-center ${isRTL ? 'flex-row-reverse' : ''}`}>
-            <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-lg">C</span>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg">
+              <img 
+                src="/logo.svg" 
+                alt="CampusBites Logo" 
+                className="w-full h-full object-contain"
+              />
             </div>
             <span className={`text-xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent ${isRTL ? 'mr-3' : 'ml-3'}`}>
               CampusBites

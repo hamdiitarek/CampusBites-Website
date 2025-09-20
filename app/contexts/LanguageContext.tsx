@@ -159,6 +159,7 @@ const translations: Translations = {
   privacyPolicy: { en: "Privacy Policy", ar: "سياسة الخصوصية" },
   termsOfService: { en: "Terms of Service", ar: "شروط الخدمة" },
   contact: { en: "Contact", ar: "اتصل بنا" },
+  userGuide: { en: "User Guide", ar: "دليل المستخدم" },
   
   // IPhone Mockup additional content
   goodMorning: { en: "Good morning, Sarah!", ar: "صباح الخير، سارة!" },

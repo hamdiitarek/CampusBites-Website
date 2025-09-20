@@ -23,11 +23,9 @@ const Footer = () => {
             {/* Brand Section - Enhanced */}
             <div className="lg:col-span-1 space-y-6">
               <div className={`flex items-center ${isRTL ? 'flex-row-reverse justify-end' : 'justify-start'}`}>
-                <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <span className="text-white font-bold text-xl">C</span>
-                </div>
+                
                 <span className={`text-2xl font-bold text-white icon-before ${isRTL ? 'font-arabic' : ''}`}>
-                  CampusBites
+                   CampusBites
                 </span>
               </div>
               
@@ -203,6 +201,14 @@ const Footer = () => {
               </a>
               <a href="#" className="text-gray-400 hover:text-white text-sm transition-colors hover:underline">
                 {t('contact')}
+              </a>
+              <a 
+                href={isRTL ? "https://support.campusbites.app/hc/guide/ar" : "https://support.campusbites.app/hc/guide/en"} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-400 hover:text-blue-300 text-sm transition-colors hover:underline font-medium"
+              >
+                {t('userGuide')}
               </a>
               <a href="/campus-food-guide-egypt" className="text-orange-400 hover:text-orange-300 text-sm transition-colors hover:underline font-medium">
                 {isRTL ? 'دليل الطعام الجامعي' : 'Campus Food Guide'}

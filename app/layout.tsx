@@ -41,9 +41,9 @@ export const metadata: Metadata = {
     siteName: 'CampusBites',
     images: [
       {
-        url: '/og-image.jpg',
-        width: 1200,
-        height: 630,
+        url: '/icon.png',
+        width: 586,
+        height: 586,
         alt: 'CampusBites - Campus Food Delivery Egypt',
       }
     ],
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'CampusBites - طعام الحرم الجامعي | Egypt Campus Food Delivery',
     description: 'اطلب أكلك المفضل من الجامعة 🚀 Egypt\'s fastest campus food delivery app',
-    images: ['/twitter-image.jpg'],
+    images: ['/icon.png'],
     creator: '@CampusBitesEG',
   },
   robots: {
