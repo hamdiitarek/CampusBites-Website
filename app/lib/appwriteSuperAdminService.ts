@@ -19,6 +19,8 @@ import type {
 
 // Additional types needed for admin functionality
 export interface EnrichedOrderData extends Order {
+  /** Appwrite's document timestamp, used when the order has no createdAt. */
+  $createdAt?: string;
   userDetails?: {
     id: string;
     displayName?: string;
@@ -205,9 +207,11 @@ export class AppwriteSuperAdminService {
         status: doc.status,
         paymentMethod: doc.paymentMethod,
         estimatedReadyTime: doc.estimatedReadyTime,
-        completedAt: doc.completedAt
-        // Note: Skipping createdAt/updatedAt for now due to type mismatch with Timestamp
-      })) as Order[];
+        completedAt: doc.completedAt,
+        // createdAt is typed as a Firestore Timestamp, so pass Appwrite's own
+        // ISO timestamp alongside it for display and date filters.
+        $createdAt: doc.$createdAt
+      })) as (Order & { $createdAt?: string })[];
     } catch (error) {
       console.error('Error getting recent orders:', error);
       throw error;

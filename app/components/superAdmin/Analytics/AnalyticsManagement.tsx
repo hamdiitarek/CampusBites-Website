@@ -205,8 +205,8 @@ export function AnalyticsManagement() {
   return (
     <div className="space-y-6">
       {/* Controls */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
             <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="Period" />
@@ -246,7 +246,7 @@ export function AnalyticsManagement() {
           </Select>
         </div>
 
-        <div className="flex space-x-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={() => handleExportReport('analytics')}>
             <Download className="h-4 w-4 mr-2" />
             Export Report

@@ -200,14 +200,14 @@ export function UniversitiesManagement() {
         <div className="grid gap-6">
           {filteredUniversities.map((university) => (
             <Card key={university.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-3 mb-3">
                       <GraduationCap className="h-6 w-6 text-primary" />
                       <div>
                         <h3 className="text-lg font-semibold">{university.name}</h3>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                           <MapPin className="h-3 w-3" />
                           {university.city}
                           {university.isActive ? (
@@ -237,10 +237,10 @@ export function UniversitiesManagement() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
                       {university.email && (
-                        <div className="flex items-center gap-1">
-                          <Mail className="h-3 w-3" />
+                        <div className="flex min-w-0 items-center gap-1 break-all">
+                          <Mail className="h-3 w-3 shrink-0" />
                           {university.email}
                         </div>
                       )}

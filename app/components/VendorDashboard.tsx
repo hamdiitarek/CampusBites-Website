@@ -109,15 +109,15 @@ function MetricCard({ title, value, change, icon: Icon, color, loading = false }
       whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
     >
       <Card className="transition-all duration-300 hover:shadow-md">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex items-start justify-between gap-2 sm:items-center">
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">{title}</p>
               {loading ? (
                 <div className="h-8 w-24 bg-gray-200 rounded animate-pulse" />
               ) : (
-                <div className="flex items-center gap-2">
-                  <p className="text-2xl font-bold text-gray-900">{value}</p>
+                <div className="flex flex-wrap items-center gap-x-2">
+                  <p className="text-lg sm:text-2xl font-bold text-gray-900">{value}</p>
                   {change !== undefined && (
                     <div className={`flex items-center gap-1 ${changeColor}`}>
                       {React.createElement(changeIcon, { size: 16 })}
@@ -127,8 +127,8 @@ function MetricCard({ title, value, change, icon: Icon, color, loading = false }
                 </div>
               )}
             </div>
-            <div className={`p-3 rounded-lg ${color}`}>
-              <Icon size={24} className="text-white" />
+            <div className={`shrink-0 p-2 sm:p-3 rounded-lg ${color}`}>
+              <Icon size={24} className="size-4 sm:size-6 text-white" />
             </div>
           </div>
         </CardContent>
@@ -341,7 +341,7 @@ export function VendorDashboard() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 bg-white p-1 rounded-lg shadow-sm border">
+            <TabsList className="no-scrollbar flex h-auto w-full justify-start overflow-x-auto bg-white p-1 rounded-lg shadow-sm border md:grid md:grid-cols-5">
               <TabsTrigger value="overview" className="flex-1 min-w-fit text-xs sm:text-sm px-3 py-2">
                 Overview
               </TabsTrigger>
@@ -367,7 +367,7 @@ export function VendorDashboard() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+              className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4"
             >
               <MetricCard
                 title="Total Revenue"
@@ -552,7 +552,7 @@ export function VendorDashboard() {
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ duration: 0.3, delay: index * 0.1 }}
-                          className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                          className="flex flex-col gap-3 p-4 border rounded-lg hover:bg-gray-50 sm:flex-row sm:items-center sm:justify-between"
                         >
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">

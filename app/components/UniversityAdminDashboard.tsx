@@ -967,7 +967,7 @@ export function UniversityAdminDashboard() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.4, delay: 0.6 }}
-            className="w-full overflow-x-auto"
+            className="no-scrollbar w-full overflow-x-auto"
           >
             <TabsList className="w-full min-w-max flex p-1 bg-muted rounded-lg focus:outline-none">
               <TabsTrigger value="analytics" className="flex-1 min-w-fit text-xs sm:text-sm px-3 py-2 transition-all duration-200 hover:bg-gray-100 data-[state=active]:bg-white data-[state=active]:shadow-sm whitespace-nowrap focus:outline-none focus:ring-0">Analytics</TabsTrigger>

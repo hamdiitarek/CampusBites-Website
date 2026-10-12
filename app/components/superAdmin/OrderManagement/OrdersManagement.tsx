@@ -31,6 +31,20 @@ import {
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/(landing)/components/ui/dropdown-menu';
 import { SuperAdminService, EnrichedOrderData } from '@/lib/appwriteSuperAdminService';
 import { safeTimestampToDate } from '@/lib/models';
+
+// Appwrite stores order items as a JSON string; older data may be an array.
+const itemCount = (items: unknown): number => {
+  if (Array.isArray(items)) return items.length;
+  if (typeof items === 'string') {
+    try {
+      const parsed = JSON.parse(items);
+      return Array.isArray(parsed) ? parsed.length : 0;
+    } catch {
+      return 0;
+    }
+  }
+  return 0;
+};
 import { useToast } from '@/hooks/use-toast';
 
 export function OrdersManagement() {
@@ -208,7 +222,7 @@ export function OrdersManagement() {
         
         if (dateRange !== 'all') {
           filteredOrders = filteredOrders.filter(order => {
-            const orderDate = safeTimestampToDate(order?.createdAt);
+            const orderDate = safeTimestampToDate(order?.createdAt ?? order?.$createdAt);
             return orderDate >= startDate;
           });
         }
@@ -342,8 +356,8 @@ export function OrdersManagement() {
   return (
     <div className="space-y-6">
       {/* Real-time Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center space-x-2">
             <Activity className={`h-5 w-5 ${autoRefreshEnabled ? 'text-green-600' : 'text-gray-400'}`} />
             <span className={`text-sm ${autoRefreshEnabled ? 'text-green-600' : 'text-gray-600'}`}>
@@ -429,7 +443,7 @@ export function OrdersManagement() {
               <DollarSign className="h-8 w-8 text-green-600" />
               <div className={`${isRTL ? 'mr-4' : 'ml-4'}`}>
                 <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                <p className="text-2xl font-bold text-gray-900">${orderStats.totalRevenue.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-gray-900">EGP {orderStats.totalRevenue.toFixed(2)}</p>
               </div>
             </div>
           </CardContent>
@@ -439,14 +453,14 @@ export function OrdersManagement() {
       {/* Filters and Search */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <CardTitle>Orders Management</CardTitle>
               <CardDescription>
                 Real-time monitoring and management of all platform orders
               </CardDescription>
             </div>
-            <div className="flex space-x-2">
+            <div className="flex flex-wrap gap-2">
               <Button variant="outline">
                 <Download className="h-4 w-4 mr-2" />
                 Export
@@ -520,7 +534,7 @@ export function OrdersManagement() {
           {/* Orders Table */}
           <div className="space-y-4">
             {currentOrders.map((order) => (
-              <div key={order.id || `order-${Math.random()}`} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+              <div key={order.id || `order-${Math.random()}`} className="flex flex-col gap-3 p-4 border rounded-lg hover:bg-gray-50 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center space-x-4">
                   <div className="flex-shrink-0">
                     <ShoppingCart className="h-6 w-6 text-blue-600" />
@@ -535,7 +549,7 @@ export function OrdersManagement() {
                       )}
                     </div>
                     <p className="text-sm text-gray-600">
-                      {order.items?.length || 0} items • ${order.total?.toFixed(2) || '0.00'}
+                      {itemCount(order.items)} item{itemCount(order.items) === 1 ? '' : 's'} • EGP {order.total?.toFixed(2) || '0.00'}
                       {order.userDetails?.displayName && (
                         <span className="ml-2">
                           • by {order.userDetails.displayName}
@@ -546,16 +560,16 @@ export function OrdersManagement() {
                       )}
                     </p>
                     <p className="text-sm text-gray-500">
-                      {typeof order.createdAt === 'string' ? new Date(order.createdAt).toLocaleString() : order.createdAt?.seconds ? new Date(order.createdAt.seconds * 1000).toLocaleString() : 'Unknown date'}
+                      {order.createdAt ?? order.$createdAt ? safeTimestampToDate(order.createdAt ?? order.$createdAt).toLocaleString() : 'Unknown date'}
                     </p>
                   </div>
                 </div>
                 
-                <div className="flex items-center space-x-4">
+                <div className="flex flex-wrap items-center gap-3">
                   {getStatusBadge(order.status)}
                   {getPaymentMethodBadge(order.paymentMethod)}
                   
-                  <div className="text-right min-w-[200px]">
+                  <div className="w-full sm:w-auto sm:min-w-[200px] sm:text-right">
                     <div className="mb-1">
                       <p className="text-sm font-medium">
                         User: {order.userDetails?.displayName || order.userDetails?.fullName || order.userDetails?.email?.split('@')[0] || `ID: ${order.userId?.slice(-8)}`}

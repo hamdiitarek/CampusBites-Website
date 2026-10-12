@@ -311,7 +311,7 @@ export function OneTimeCodeManagement({ className }: OneTimeCodeManagementProps)
   return (
     <div className={`space-y-6 ${className}`}>
       {/* Header with actions */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-2xl font-bold">One-Time Code Management</h2>
           <p className="text-gray-600">Create and manage one-time signup codes for vendors and admins</p>

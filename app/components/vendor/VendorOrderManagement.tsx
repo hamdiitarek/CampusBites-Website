@@ -429,25 +429,25 @@ export function VendorOrderManagement({ orders, loading = false, onOrderUpdate, 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.1 }}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex flex-col gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors sm:flex-row sm:items-center sm:justify-between"
               >
-                <div className="flex items-center gap-4 flex-1">
-                  <div className="text-sm font-mono text-gray-500 min-w-[80px]">
+                <div className="flex min-w-0 items-start gap-3 sm:flex-1 sm:items-center sm:gap-4">
+                  <div className="shrink-0 pt-0.5 text-sm font-mono text-gray-500 sm:min-w-[80px] sm:pt-0">
                     #{order.id.slice(-6).toUpperCase()}
                   </div>
                   
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium text-gray-900">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-x-2 mb-1">
+                      <span className="whitespace-nowrap font-medium text-gray-900">
                         {order.items.length} item{order.items.length > 1 ? 's' : ''}
                       </span>
                       <span className="text-gray-500">•</span>
-                      <span className="font-semibold text-gray-900">
+                      <span className="whitespace-nowrap font-semibold text-gray-900">
                         {formatCurrency(order.total)}
                       </span>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-gray-500">
-                      <span className="flex items-center gap-1">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500">
+                      <span className="flex items-center gap-1 whitespace-nowrap">
                         <Calendar className="h-3 w-3" />
                         {getTimeAgo(order.createdAt)}
                       </span>
@@ -462,7 +462,7 @@ export function VendorOrderManagement({ orders, loading = false, onOrderUpdate, 
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center justify-between gap-3 sm:justify-end">
                   <OrderStatusBadge status={order.status} />
                   <QuickActions order={order} onStatusUpdate={onOrderUpdate} />
                 </div>

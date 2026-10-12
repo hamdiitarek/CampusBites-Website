@@ -402,7 +402,7 @@ export function VendorsManagement() {
           {/* Vendors Table */}
           <div className="space-y-4">
             {currentVendors.map((vendor) => (
-              <div key={vendor.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+              <div key={vendor.id} className="flex flex-col gap-3 p-4 border rounded-lg hover:bg-gray-50 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center space-x-4">
                   <div className="flex-shrink-0">
                     <img

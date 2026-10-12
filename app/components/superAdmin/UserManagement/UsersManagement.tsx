@@ -380,14 +380,14 @@ export function UsersManagement() {
       {/* Filters and Search */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <CardTitle>User Management</CardTitle>
               <CardDescription>
                 Manage and monitor all platform users
               </CardDescription>
             </div>
-            <div className="flex space-x-2">
+            <div className="flex flex-wrap gap-2">
               <Button variant="outline" onClick={handleExportUsers}>
                 <Download className="h-4 w-4 mr-2" />
                 Export
@@ -456,14 +456,14 @@ export function UsersManagement() {
           {/* Users Table */}
           <div className="space-y-4">
             {currentUsers.map((user) => (
-              <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+              <div key={user.id} className="flex flex-col gap-3 p-4 border rounded-lg hover:bg-gray-50 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center space-x-4">
                   <div className="flex-shrink-0">
                     {getRoleIcon(user.role)}
                   </div>
                   <div>
                     <h3 className="font-semibold">{user.fullName}</h3>
-                    <p className="text-sm text-gray-600 preserve-ltr">{user.email}</p>
+                    <p className="text-sm text-gray-600 preserve-ltr break-all">{user.email}</p>
                     <p className="text-sm text-gray-500">{user.universityName}</p>
                     {user.phoneNumber && (
                       <p className="text-sm text-gray-500 preserve-ltr">{user.phoneNumber}</p>

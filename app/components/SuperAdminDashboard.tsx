@@ -638,7 +638,7 @@ export function SuperAdminDashboard() {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="no-scrollbar flex h-auto w-full justify-start overflow-x-auto sm:grid sm:grid-cols-3">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="users">Users Management</TabsTrigger>
             <TabsTrigger value="universities">Universities</TabsTrigger>
@@ -657,10 +657,10 @@ export function SuperAdminDashboard() {
                 <CardContent>
                   <div className="space-y-4">
                     {universities.map((university) => (
-                      <div key={university.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
+                      <div key={university.id} className="flex flex-col gap-3 p-4 border rounded-lg sm:flex-row sm:items-center sm:justify-between">
+                        <div className="min-w-0">
                           <h3 className="font-semibold">{university.name}</h3>
-                          <div className="flex space-x-4 text-sm text-gray-600 mt-1">
+                          <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600 mt-1">
                             <span>{university.studentsCount} Students</span>
                             <span>{university.vendorsCount} Vendors</span>
                             <span>{university.adminsCount} Admins</span>
@@ -775,14 +775,14 @@ export function SuperAdminDashboard() {
                 ) : (
                   <div className="space-y-4">
                     {filteredUsers.map((user) => (
-                      <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
-                        <div className="flex items-center space-x-4">
+                      <div key={user.id} className="flex flex-col gap-3 p-4 border rounded-lg hover:bg-gray-50 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex min-w-0 items-center space-x-4">
                           <div className="flex-shrink-0">
                             {getRoleIcon(user.role)}
                           </div>
                           <div>
                             <h3 className="font-semibold">{user.fullName}</h3>
-                            <p className="text-sm text-gray-600 preserve-ltr">{user.email}</p>
+                            <p className="text-sm text-gray-600 preserve-ltr break-all">{user.email}</p>
                             <p className="text-sm text-gray-500">{user.universityName}</p>
                             {user.phoneNumber && (
                               <p className="text-sm text-gray-500 preserve-ltr">{user.phoneNumber}</p>
@@ -796,7 +796,7 @@ export function SuperAdminDashboard() {
                           </Badge>
                           <div className="text-right">
                             <p className="text-sm font-medium">
-                              ${user.walletBalance || 0}
+                              EGP {user.walletBalance || 0}
                             </p>
                             <p className="text-xs text-gray-500">
                               Joined: {formatDate(user.createdAt)}
@@ -861,11 +861,11 @@ export function SuperAdminDashboard() {
                 <div className="space-y-6">
                   {universities.map((university) => (
                     <Card key={university.id}>
-                      <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                          <div>
+                      <CardContent className="p-4 sm:p-6">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="min-w-0">
                             <h3 className="text-lg font-semibold">{university.name}</h3>
-                            <div className="flex space-x-6 mt-2 text-sm text-gray-600">
+                            <div className="flex flex-wrap gap-x-6 gap-y-1 mt-2 text-sm text-gray-600">
                               <span className="flex items-center">
                                 <GraduationCap className="h-4 w-4 mr-1" />
                                 {university.studentsCount || 0} Students
