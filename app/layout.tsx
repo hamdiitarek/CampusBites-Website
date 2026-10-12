@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     default: "CampusBites - طعام الحرم الجامعي | Campus Food Delivery App Egypt",
     template: "%s | CampusBites - طعام الحرم الجامعي"
   },
-  description: "طلب طعام الجامعة في مصر 🍕 | Egypt's #1 campus food delivery app. Order from university restaurants, cafeterias & food trucks. Fast delivery to dorms & study areas across Egyptian universities. توصيل طعام سريع للحرم الجامعي",
+  description: "Campus food ordering for Egyptian universities: students order from campus cafés and pick up when it’s ready; vendors and universities run it from live dashboards. طلب أكل الجامعة من غير طابور.",
   keywords: [
     // Arabic Keywords (Egyptian dialect + MSA)
     "توصيل طعام جامعي", "أكل الجامعة", "طلب طعام مصر", "توصيل أكل للجامعة", 
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     alternateLocale: ['ar_EG'],
     url: 'https://campusbites.com',
     title: 'CampusBites - طعام الحرم الجامعي | Egypt Campus Food Delivery',
-    description: 'اطلب أكلك المفضل من الجامعة 🚀 Order your favorite campus food with lightning-fast delivery to Egyptian universities. منصة توصيل الطعام الأولى في الجامعات المصرية',
+    description: 'Order from campus cafés, pay by wallet or cash, and pick up when it’s ready. Live demo with vendor, university and platform dashboards.',
     siteName: 'CampusBites',
     images: [
       {
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'CampusBites - طعام الحرم الجامعي | Egypt Campus Food Delivery',
-    description: 'اطلب أكلك المفضل من الجامعة 🚀 Egypt\'s fastest campus food delivery app',
+    description: 'Campus food ordering for Egyptian universities, with live vendor, university and platform dashboards.',
     images: ['/icon.png'],
     creator: '@CampusBitesEG',
   },

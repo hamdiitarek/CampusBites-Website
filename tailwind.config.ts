@@ -20,6 +20,9 @@ export default {
 		extend: {
 			colors: {
 				border: 'hsl(var(--border))',
+				basil: 'hsl(var(--basil))',
+				saffron: 'hsl(var(--saffron))',
+				grill: 'hsl(var(--grill))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
 				background: 'hsl(var(--background))',
@@ -124,8 +127,10 @@ export default {
 				'fadeInUp': 'fadeInUp 0.6s ease-out'
 			},
 			fontFamily: {
-				'sans': ['Inter', 'ui-sans-serif', 'system-ui'],
-				'arabic': ['Cairo', 'ui-sans-serif', 'system-ui']
+				'sans': ['Cairo', 'ui-sans-serif', 'system-ui'],
+				'arabic': ['Cairo', 'ui-sans-serif', 'system-ui'],
+				'display': ['Archivo', 'Cairo', 'ui-sans-serif', 'system-ui'],
+				'mono': ['"IBM Plex Mono"', 'ui-monospace', 'monospace']
 			}
 		}
 	},

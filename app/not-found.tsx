@@ -1,28 +1,20 @@
-"use client";
+import type { Metadata } from 'next';
+import { NotFoundView } from '@/components/site/NotFoundView';
 
-import { usePathname } from "next/navigation";
-import { useEffect } from "react";
-import Link from "next/link";
+export const metadata: Metadata = {
+  title: { absolute: '404 · CampusBites' },
+  robots: { index: false },
+};
+
+// Hides the page until GSAP plays the intro (see globals.css); without JS
+// the flag is never set and the page shows as-is.
+const MOTION_FLAG = "document.documentElement.classList.add('motion')";
 
 export default function NotFound() {
-  const pathname = usePathname();
-
-  useEffect(() => {
-    console.error(
-      "404 Error: User attempted to access non-existent route:",
-      pathname
-    );
-  }, [pathname]);
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">404</h1>
-        <p className="text-xl text-gray-600 mb-4">Oops! Page not found</p>
-        <Link href="/" className="text-blue-500 hover:text-blue-700 underline">
-          Return to Home
-        </Link>
-      </div>
-    </div>
+    <>
+      <script dangerouslySetInnerHTML={{ __html: MOTION_FLAG }} />
+      <NotFoundView />
+    </>
   );
 }
