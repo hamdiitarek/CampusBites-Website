@@ -8,13 +8,14 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AppwriteAuthContext';
 import { usePathname, useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
+import { isDemoMode } from '@/lib/appwrite';
 
 type AuthView = 'login' | 'forgot-password' | 'register';
 
 export function AuthContainer() {
   const [currentView, setCurrentView] = useState<AuthView>('login');
   const { isRTL, language, t } = useLanguage();
-  const { user, loading, getUserDashboardUrl } = useAuth();
+  const { user, loading, getUserDashboardUrl, logout } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -32,6 +33,14 @@ export function AuthContainer() {
   // Redirect if user is already logged in
   useEffect(() => {
     if (!loading && user) {
+      // Demo links name a role (?demo=admin). If another demo account is signed
+      // in, sign it out so the login form can switch accounts instead of
+      // bouncing back to the old dashboard.
+      const wanted = isDemoMode ? new URLSearchParams(window.location.search).get('demo') : null;
+      if (wanted && user.role !== wanted) {
+        void logout();
+        return;
+      }
       if (user.role) {
         // User is logged in and has a role, redirect to appropriate dashboard
         const dashboardUrl = getUserDashboardUrl(language);
@@ -42,7 +51,7 @@ export function AuthContainer() {
         window.location.href = `/${language}/login`;
       }
     }
-  }, [user, loading, language, getUserDashboardUrl]);
+  }, [user, loading, language, getUserDashboardUrl, logout]);
 
   // Show loading while checking authentication
   if (loading) {

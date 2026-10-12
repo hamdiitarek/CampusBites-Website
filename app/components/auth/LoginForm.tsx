@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/contexts/AppwriteAuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/(landing)/components/ui/button';
@@ -11,6 +11,14 @@ import { Alert, AlertDescription } from '@/(landing)/components/ui/alert';
 import { Loader2, Mail, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { isDemoMode } from '@/lib/appwrite';
+import { demoAccounts, type DemoAccountInfo } from '@/lib/demo/mockAppwrite';
+
+const DEMO_LABELS: Record<string, { en: string; ar: string }> = {
+  vendor: { en: 'Vendor', ar: 'مطعم' },
+  admin: { en: 'University admin', ar: 'أدمن الجامعة' },
+  'super-admin': { en: 'Platform admin', ar: 'أدمن المنصة' },
+};
 
 interface LoginFormProps {
   onForgotPassword: () => void;
@@ -47,6 +55,33 @@ export function LoginForm({ onForgotPassword, onSignUp }: LoginFormProps) {
     }
     return true;
   };
+
+  // Demo mode: one-click sign-in as any seeded role, and ?demo=<role> from the landing page.
+  const accounts = isDemoMode ? demoAccounts().filter((a) => a.role !== 'student') : [];
+  const autoTried = useRef(false);
+
+  const signInAs = async (account: DemoAccountInfo) => {
+    setEmail(account.email);
+    setPassword(account.password);
+    setError('');
+    setLoading(true);
+    try {
+      await login(account.email, account.password);
+    } catch {
+      setError(t('loginError'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!isDemoMode || autoTried.current) return;
+    autoTried.current = true;
+    const role = new URLSearchParams(window.location.search).get('demo');
+    const match = role && demoAccounts().find((a) => a.role === role);
+    if (match) void signInAs(match);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -156,6 +191,28 @@ export function LoginForm({ onForgotPassword, onSignUp }: LoginFormProps) {
             </Button>
           </div>
         </form>
+
+        {accounts.length > 0 && (
+          <div className="mt-6 rounded-xl border border-dashed border-border bg-secondary/60 p-4">
+            <p className="text-start text-sm font-semibold">{isRTL ? 'ده ديمو. ادخل كـ:' : 'This is a demo. Sign in as:'}</p>
+            <div className="mt-3 grid gap-2">
+              {accounts.map((a) => (
+                <button
+                  key={a.role}
+                  type="button"
+                  disabled={loading}
+                  onClick={() => signInAs(a)}
+                  className="flex min-w-0 flex-col items-start gap-0.5 rounded-lg border border-border bg-card px-3 py-2 text-start text-sm transition hover:border-primary disabled:opacity-50 sm:flex-row sm:items-center sm:justify-between sm:gap-3"
+                >
+                  <span className="font-semibold">{DEMO_LABELS[a.role]?.[isRTL ? 'ar' : 'en'] ?? a.role}</span>
+                  <span className="max-w-full truncate font-mono text-xs text-muted-foreground" dir="ltr">
+                    {a.email}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

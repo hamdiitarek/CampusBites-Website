@@ -1,4 +1,13 @@
 import { Client, Account, Databases, Storage, Functions, Teams } from 'appwrite';
+import { DemoAccount, DemoDatabases, demoClient } from './demo/mockAppwrite';
+
+/**
+ * Demo mode (the default) runs the whole app against an in-browser copy of the
+ * demo dataset, so the public deployment works without an Appwrite project.
+ * Set NEXT_PUBLIC_DEMO_MODE=false and the Appwrite variables below to use a
+ * real backend.
+ */
+export const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE !== 'false';
 
 // Appwrite configuration
 const appwriteConfig = {
@@ -23,17 +32,15 @@ const appwriteConfig = {
   storageBucketId: process.env.NEXT_PUBLIC_APPWRITE_STORAGE_BUCKET_ID || 'images'
 };
 
-// Initialize Appwrite client
-export const client = new Client()
-  .setEndpoint(appwriteConfig.endpoint)
-  .setProject(appwriteConfig.projectId);
+const realClient = new Client().setEndpoint(appwriteConfig.endpoint).setProject(appwriteConfig.projectId);
 
-// Initialize services
-export const account = new Account(client);
-export const databases = new Databases(client);
-export const storage = new Storage(client);
-export const functions = new Functions(client);
-export const teams = new Teams(client);
+// The demo stand-ins implement the subset of the SDK this app calls.
+export const client = (isDemoMode ? demoClient : realClient) as unknown as Client;
+export const account = (isDemoMode ? new DemoAccount() : new Account(realClient)) as unknown as Account;
+export const databases = (isDemoMode ? new DemoDatabases() : new Databases(realClient)) as unknown as Databases;
+export const storage = new Storage(realClient);
+export const functions = new Functions(realClient);
+export const teams = new Teams(realClient);
 
 // Export configuration for use in other files
 export { appwriteConfig };
